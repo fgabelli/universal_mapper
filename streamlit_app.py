@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 from utils.auth import login, register
 from utils.file_processing import upload_file, preview_file, get_columns, generate_output
@@ -10,20 +9,24 @@ st.set_page_config(page_title="Universal Mapper", layout="wide")
 # Funzione per mostrare l'intestazione con logo e nome app
 def show_header():
     col1, col2 = st.columns([1, 5])
-    logo_path = os.path.join("C:/universal_mapper/app/logo", "logo_web.png")  # Percorso del logo
-    with col1:
-        st.image(logo_path, width=80)  # Carica il logo
-    with col2:
-        st.markdown(
-            """
-            <div style="margin-top: -10px;">
-                <h1 style="margin-bottom: 0; font-size: 35px; font-family: Arial, sans-serif; color: #333;">
-                    Universal Mapper
-                </h1>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    # URL del logo ospitato su GitHub
+    logo_url = "https://raw.githubusercontent.com/fgabelli/universal_mapper/main/logo/logo_web.png"
+    try:
+        with col1:
+            st.image(logo_url, width=80)  # Carica il logo dal link GitHub
+        with col2:
+            st.markdown(
+                """
+                <div style="margin-top: -10px;">
+                    <h1 style="margin-bottom: 0; font-size: 24px; font-family: Arial, sans-serif; color: #333;">
+                        Universal Mapper
+                    </h1>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+    except Exception as e:
+        st.error(f"Errore nel caricamento del logo: {e}")
 
 # Mostra l'intestazione nella parte superiore di ogni pagina
 show_header()
