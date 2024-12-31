@@ -1,13 +1,22 @@
 import os
 import streamlit as st
+from decouple import config  # Per gestire ambienti diversi
 
-# Configurazione dell'app - deve essere il PRIMO comando Streamlit
-st.set_page_config(page_title="Universal Mapper", layout="wide")
+# Configurazione dell'ambiente
+ENV = config("ENV", default="staging")
+DEBUG = config("DEBUG", cast=bool, default=True)
+
+# Configurazione Streamlit
+st.set_page_config(page_title="Universal Mapper Stage", layout="wide")
 
 # Importa i moduli richiesti
 from utils.auth import login, register, request_password_reset, reset_password
 from utils.file_processing import upload_file, preview_file, get_columns, generate_output
 from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
+
+# Mostra un avviso se siamo in modalità staging
+if DEBUG:
+    st.warning("⚠️ Sei in modalità STAGING!")
 
 # Funzione per mostrare l'intestazione con logo e nome app
 def show_header():
@@ -47,7 +56,7 @@ with st.sidebar:
         st.title("Navigazione")
         page = st.radio(
             "Vai a:",
-            options=["Caricamento File", "Gestione Profili", "Account", "Manuale" , "Logout"],
+            options=["Caricamento File", "Gestione Profili", "Account", "Manuale", "Logout"],
             key="page_selector"
         )
         st.session_state["page"] = page
@@ -107,6 +116,7 @@ elif st.session_state["page"] == "Reset Password":
     if st.button("Reimposta Password", key="reset_password_button"):
         if reset_password(token, new_password):
             st.success("Password aggiornata con successo!")
+            handle_navigation("login")
         else:
             st.error("Token non valido o scaduto.")
     if st.button("Torna al Login", key="back_to_login_from_reset_button"):
@@ -189,73 +199,3 @@ elif st.session_state["page"] == "Caricamento File":
                     )
                 except ValueError as e:
                     st.error(str(e))
-
-# Pagina di Gestione Profili
-elif st.session_state["page"] == "Gestione Profili":
-    st.title("Gestione Profili")
-    st.write("Seleziona un profilo da eliminare.")
-    profiles = list_profiles()
-    if profiles:
-        selected_profile = st.selectbox("Seleziona un profilo salvato", profiles)
-        if st.button("Elimina Profilo"):
-            delete_profile(selected_profile)
-            st.success(f"Profilo '{selected_profile}' eliminato!")
-    else:
-        st.warning("Non ci sono profili salvati.")
-
-# Pagina di Account
-elif st.session_state["page"] == "Account":
-    st.title("Impostazioni Account")
-    st.write("Qui puoi gestire il tuo account.")
-    new_password = st.text_input("Nuova Password", type="password")
-    if st.button("Cambia Password"):
-        st.success("Password cambiata con successo!")
-# Pagina di Manuale Utente
-elif st.session_state["page"] == "Manuale":
-    st.title("Manuale Utente")
-    st.markdown("""
-    ### Benvenuto nel Manuale Utente di Universal Mapper
-    
-    Questa applicazione ti consente di caricare file sorgente e tracciati record, associare colonne, generare file di output e gestire profili personalizzati.
-    
-    #### **Come utilizzare l'app:**
-    
-    1. **Login o Registrazione**:
-       - Accedi utilizzando il tuo username e password.
-       - Se non hai un account, utilizza il pulsante di registrazione per crearne uno.
-    
-    2. **Caricamento File**:
-       - Carica il file sorgente (CSV, XLS, XLSX) e il tracciato record.
-       - Visualizza un'anteprima dei file caricati per verificarne il contenuto.
-    
-    3. **Associazione Colonne**:
-       - Associa le colonne del file sorgente a quelle del tracciato record.
-       - Puoi caricare o salvare un profilo per semplificare il processo in futuro.
-    
-    4. **Generazione File di Output**:
-       - Scegli il formato di output desiderato (CSV, XLS, XLSX).
-       - Genera e scarica il file di output.
-    
-    5. **Gestione Profili**:
-       - Visualizza ed elimina i profili salvati.
-    
-    #### **Funzionalità aggiuntive:**
-    
-    - **Reset Password**: Reimposta la password in caso di smarrimento.
-    - **Impostazioni Account**: Modifica la password o gestisci i dettagli dell'account.
-    
-    #### **Supporto:**
-    
-    Per ulteriori informazioni o problemi tecnici, contatta il supporto tecnico.
-    
-    **Email:** supporto@revan.it  
-    **Telefono:** +39 0245076239
-    """)
-
-    st.info("Consulta questa pagina in caso di dubbi sull'utilizzo dell'applicazione.")
-
-# Pagina di Logout
-elif st.session_state["page"] == "Logout":
-    st.session_state["authenticated"] = False
-    st.session_state["page"] = "login"
-    st.success("Disconnesso con successo!")
