@@ -91,14 +91,14 @@ if st.session_state["page"] == "login":
         else:
             st.error("Entrambi i campi sono obbligatori.")
 
-    # Collegamenti per registrazione e reset password
-    st.markdown("**Non hai un account?** [Registrati](#)")
-    if st.button("Registrati", key="goto_register_button"):
+    # Bottone per la registrazione
+    if st.button("Vai alla Registrazione", key="goto_register_button"):
         handle_navigation("register")
 
-    st.markdown("**Hai dimenticato la password?** [Resetta Password](#)")
+    # Bottone per il reset della password
     if st.button("Hai dimenticato la password?", key="forgot_password_button"):
         handle_navigation("Reset Password")
+
 
 # Pagina di Caricamento File
 elif st.session_state["page"] == "Caricamento File":
