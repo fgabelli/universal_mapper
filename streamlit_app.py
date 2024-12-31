@@ -47,7 +47,7 @@ with st.sidebar:
         st.title("Navigazione")
         page = st.radio(
             "Vai a:",
-            options=["Caricamento File", "Gestione Profili", "Account", "Reset Password", "Logout"],
+            options=["Caricamento File", "Gestione Profili", "Account", "Logout"],
             key="page_selector"
         )
         st.session_state["page"] = page
