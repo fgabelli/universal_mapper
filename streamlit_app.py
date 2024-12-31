@@ -72,55 +72,33 @@ def handle_navigation(page_name):
 # Pagina di Login
 if st.session_state["page"] == "login":
     st.title("Login")
-    username = st.text_input("Username", key="login_username")
-    password = st.text_input("Password", type="password", key="login_password")
-    if st.button("Login", key="login_button"):
-        if login(username, password):
-            st.session_state["authenticated"] = True
-            handle_navigation("Caricamento File")
+
+    # Campi di input per username e password
+    username = st.text_input("Username", placeholder="Inserisci il tuo username", key="login_username")
+    password = st.text_input("Password", placeholder="Inserisci la tua password", type="password", key="login_password")
+
+    # Bottone per il login
+    login_clicked = st.button("Login", key="login_button")
+
+    if login_clicked:
+        if username and password:
+            if login(username, password):  # Chiama la funzione di autenticazione
+                st.success("Login riuscito! Reindirizzamento in corso...")
+                st.session_state["authenticated"] = True
+                handle_navigation("Caricamento File")  # Passa alla pagina successiva
+            else:
+                st.error("Credenziali errate. Riprova.")
         else:
-            st.error("Credenziali errate.")
-    if st.button("Vai alla Registrazione", key="goto_register_button"):
+            st.error("Entrambi i campi sono obbligatori.")
+
+    # Collegamenti per registrazione e reset password
+    st.markdown("**Non hai un account?** [Registrati](#)")
+    if st.button("Registrati", key="goto_register_button"):
         handle_navigation("register")
+
+    st.markdown("**Hai dimenticato la password?** [Resetta Password](#)")
     if st.button("Hai dimenticato la password?", key="forgot_password_button"):
         handle_navigation("Reset Password")
-
-# Pagina di Registrazione
-elif st.session_state["page"] == "register":
-    st.title("Registrazione")
-    new_username = st.text_input("Nuovo Username", key="register_username")
-    new_password = st.text_input("Nuova Password", type="password", key="register_password")
-    if st.button("Registrati", key="register_button"):
-        if new_username and new_password:
-            if register(new_username, new_password):
-                st.success("Registrazione completata! Procedi con il login.")
-                handle_navigation("login")
-            else:
-                st.error("L'utente esiste già.")
-        else:
-            st.error("Compila tutti i campi.")
-    if st.button("Torna al Login", key="back_to_login_button"):
-        handle_navigation("login")
-
-# Pagina di Reset Password
-elif st.session_state["page"] == "Reset Password":
-    st.title("Reset Password")
-    username = st.text_input("Inserisci il tuo username per inviare un'email di reset:", key="reset_username")
-    if st.button("Invia Email", key="send_reset_email_button"):
-        if request_password_reset(username):
-            st.success("Email inviata! Controlla la tua casella di posta.")
-        else:
-            st.error("Utente non trovato.")
-    token = st.text_input("Inserisci il token ricevuto via email:", key="reset_token")
-    new_password = st.text_input("Inserisci la nuova password:", type="password", key="new_password")
-    if st.button("Reimposta Password", key="reset_password_button"):
-        if reset_password(token, new_password):
-            st.success("Password aggiornata con successo!")
-            handle_navigation("login")
-        else:
-            st.error("Token non valido o scaduto.")
-    if st.button("Torna al Login", key="back_to_login_from_reset_button"):
-        handle_navigation("login")
 
 # Pagina di Caricamento File
 elif st.session_state["page"] == "Caricamento File":
