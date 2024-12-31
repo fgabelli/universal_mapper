@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from utils.auth import login, register
+from utils.auth import login, register, request_password_reset, reset_password
 from utils.file_processing import upload_file, preview_file, get_columns, generate_output
 from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
 
@@ -46,7 +46,7 @@ with st.sidebar:
         st.title("Navigazione")
         page = st.radio(
             "Vai a:",
-            options=["Caricamento File", "Gestione Profili", "Account", "Logout"],
+            options=["Caricamento File", "Gestione Profili", "Account", "Reset Password", "Logout"],
             key="page_selector"
         )
         st.session_state["page"] = page
@@ -160,6 +160,23 @@ elif st.session_state["page"] == "Caricamento File":
                     )
                 except ValueError as e:
                     st.error(str(e))
+
+# Pagina di Reset Password
+elif st.session_state["page"] == "Reset Password":
+    st.title("Reset Password")
+    username = st.text_input("Inserisci il tuo username per inviare un'email di reset:")
+    if st.button("Invia Email"):
+        if request_password_reset(username):
+            st.success("Email inviata! Controlla la tua casella di posta.")
+        else:
+            st.error("Utente non trovato.")
+    token = st.text_input("Inserisci il token ricevuto via email:")
+    new_password = st.text_input("Inserisci la nuova password:", type="password")
+    if st.button("Reimposta Password"):
+        if reset_password(token, new_password):
+            st.success("Password aggiornata con successo!")
+        else:
+            st.error("Token non valido o scaduto.")
 
 # Pagina di Gestione Profili
 elif st.session_state["page"] == "Gestione Profili":
