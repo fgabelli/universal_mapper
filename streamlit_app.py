@@ -73,37 +73,34 @@ with st.sidebar:
 # Pagina di Login
 if st.session_state["page"] == "login":
     st.title("Login")
-
-    # Campi di input per username e password
-    username = st.text_input("Username", placeholder="Inserisci il tuo username", key="login_username")
+    email = st.text_input("Email", placeholder="Inserisci la tua email", key="login_email")
     password = st.text_input("Password", placeholder="Inserisci la tua password", type="password", key="login_password")
 
-    # Bottone per il login
-    login_clicked = st.button("Login", key="login_button")
-
-    if login_clicked:
-        if username and password:
-            if login(username, password):  # Chiama la funzione di autenticazione
+    if st.button("Login", key="login_button"):
+        if email and password:
+            if login(email, password):  # Usa l'email per l'autenticazione
                 st.success("Login riuscito! Reindirizzamento in corso...")
                 st.session_state["authenticated"] = True
-                st.session_state["page"] = "Caricamento File"  # Passa alla pagina successiva
+                st.session_state["page"] = "Caricamento File"
             else:
-                st.error("Credenziali errate. Riprova.")
+                st.error("Email o password errati.")
         else:
             st.error("Entrambi i campi sono obbligatori.")
 
 # Pagina di Registrazione
 elif st.session_state["page"] == "register":
     st.title("Registrazione")
-    new_username = st.text_input("Nuovo Username", key="register_username")
+    email = st.text_input("Email", placeholder="Inserisci la tua email", key="register_email")
     new_password = st.text_input("Nuova Password", type="password", key="register_password")
     if st.button("Registrati", key="register_button"):
-        if new_username and new_password:
-            if register(new_username, new_password):
+        if email and new_password:
+            if "@" not in email or "." not in email:
+                st.error("Inserisci un'email valida.")
+            elif register(email, new_password):  # Usa l'email come identificatore
                 st.success("Registrazione completata! Procedi con il login.")
                 st.session_state["page"] = "login"
             else:
-                st.error("L'utente esiste già.")
+                st.error("Un utente con questa email esiste già.")
         else:
             st.error("Compila tutti i campi.")
     if st.button("Torna al Login", key="back_to_login_button"):
@@ -112,12 +109,12 @@ elif st.session_state["page"] == "register":
 # Pagina di Reset Password
 elif st.session_state["page"] == "Reset Password":
     st.title("Reset Password")
-    username = st.text_input("Inserisci il tuo username per inviare un'email di reset:", key="reset_username")
+    email = st.text_input("Inserisci la tua email per inviare un'email di reset:", key="reset_email")
     if st.button("Invia Email", key="send_reset_email_button"):
-        if request_password_reset(username):
+        if request_password_reset(email):
             st.success("Email inviata! Controlla la tua casella di posta.")
         else:
-            st.error("Utente non trovato.")
+            st.error("Email non trovata.")
     token = st.text_input("Inserisci il token ricevuto via email:", key="reset_token")
     new_password = st.text_input("Inserisci la nuova password:", type="password", key="new_password")
     if st.button("Reimposta Password", key="reset_password_button"):
