@@ -4,14 +4,10 @@ import streamlit as st
 # Configurazione dell'app - deve essere il PRIMO comando Streamlit
 st.set_page_config(page_title="Universal Mapper", layout="wide")
 
-# Prova ad importare moduli
-try:
-    from utils.auth import login, register, request_password_reset, reset_password
-    from utils.file_processing import upload_file, preview_file, get_columns, generate_output
-    from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
-except ImportError as e:
-    st.error(f"Errore durante l'importazione dei moduli: {e}")
-    st.stop()
+# Importa i moduli richiesti
+from utils.auth import login, register, request_password_reset, reset_password
+from utils.file_processing import upload_file, preview_file, get_columns, generate_output
+from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
 
 # Funzione per mostrare l'intestazione con logo e nome app
 def show_header():
@@ -216,5 +212,4 @@ elif st.session_state["page"] == "Account":
 # Pagina di Logout
 elif st.session_state["page"] == "Logout":
     st.session_state["authenticated"] = False
-    st.session_state["page"] = "login"
-    st.success("Disconnesso con successo!")
+    st.
