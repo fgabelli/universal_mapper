@@ -47,7 +47,7 @@ with st.sidebar:
         st.title("Navigazione")
         page = st.radio(
             "Vai a:",
-            options=["Caricamento File", "Gestione Profili", "Account", "Logout"],
+            options=["Caricamento File", "Gestione Profili", "Account", "Manuale" , "Logout"],
             key="page_selector"
         )
         st.session_state["page"] = page
@@ -210,6 +210,49 @@ elif st.session_state["page"] == "Account":
     new_password = st.text_input("Nuova Password", type="password")
     if st.button("Cambia Password"):
         st.success("Password cambiata con successo!")
+# Pagina di Manuale Utente
+elif st.session_state["page"] == "Manuale":
+    st.title("Manuale Utente")
+    st.markdown("""
+    ### Benvenuto nel Manuale Utente di Universal Mapper
+    
+    Questa applicazione ti consente di caricare file sorgente e tracciati record, associare colonne, generare file di output e gestire profili personalizzati.
+    
+    #### **Come utilizzare l'app:**
+    
+    1. **Login o Registrazione**:
+       - Accedi utilizzando il tuo username e password.
+       - Se non hai un account, utilizza il pulsante di registrazione per crearne uno.
+    
+    2. **Caricamento File**:
+       - Carica il file sorgente (CSV, XLS, XLSX) e il tracciato record.
+       - Visualizza un'anteprima dei file caricati per verificarne il contenuto.
+    
+    3. **Associazione Colonne**:
+       - Associa le colonne del file sorgente a quelle del tracciato record.
+       - Puoi caricare o salvare un profilo per semplificare il processo in futuro.
+    
+    4. **Generazione File di Output**:
+       - Scegli il formato di output desiderato (CSV, XLS, XLSX).
+       - Genera e scarica il file di output.
+    
+    5. **Gestione Profili**:
+       - Visualizza ed elimina i profili salvati.
+    
+    #### **Funzionalità aggiuntive:**
+    
+    - **Reset Password**: Reimposta la password in caso di smarrimento.
+    - **Impostazioni Account**: Modifica la password o gestisci i dettagli dell'account.
+    
+    #### **Supporto:**
+    
+    Per ulteriori informazioni o problemi tecnici, contatta il supporto tecnico.
+    
+    **Email:** supporto@revan.it  
+    **Telefono:** +39 0245076239
+    """)
+
+    st.info("Consulta questa pagina in caso di dubbi sull'utilizzo dell'applicazione.")
 
 # Pagina di Logout
 elif st.session_state["page"] == "Logout":
