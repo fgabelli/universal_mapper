@@ -1,8 +1,12 @@
 import os
 import json
 import streamlit as st
-from utils.file_processing import upload_file, preview_file, get_columns, generate_output
 from decouple import config
+# Importa i moduli richiesti
+from utils.auth import login, register, request_password_reset, reset_password
+from utils.file_processing import upload_file, preview_file, get_columns, generate_output
+from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
+
 
 # Configurazione dell'app - deve essere il PRIMO comando Streamlit
 st.set_page_config(page_title="Universal Mapper", layout="wide")
