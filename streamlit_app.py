@@ -1,5 +1,9 @@
 import os
 import streamlit as st
+
+# Messaggio di debug iniziale
+st.write("App caricata correttamente - Avvio in corso...")
+
 from utils.auth import login, register, request_password_reset, reset_password
 from utils.file_processing import upload_file, preview_file, get_columns, generate_output
 from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
