@@ -63,23 +63,25 @@ def handle_navigation(page_name):
 # Pagina di Login
 if st.session_state["page"] == "login":
     st.title("Login")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    if st.button("Login"):
+    username = st.text_input("Username", key="login_username")
+    password = st.text_input("Password", type="password", key="login_password")
+    if st.button("Login", key="login_button"):
         if login(username, password):
             st.session_state["authenticated"] = True
             handle_navigation("Caricamento File")
-    if st.button("Vai alla Registrazione"):
+        else:
+            st.error("Credenziali errate.")
+    if st.button("Vai alla Registrazione", key="goto_register_button"):
         handle_navigation("register")
-    if st.button("Hai dimenticato la password?"):
+    if st.button("Hai dimenticato la password?", key="forgot_password_button"):
         handle_navigation("Reset Password")
 
 # Pagina di Registrazione
 elif st.session_state["page"] == "register":
     st.title("Registrazione")
-    new_username = st.text_input("Nuovo Username")
-    new_password = st.text_input("Nuova Password", type="password")
-    if st.button("Registrati"):
+    new_username = st.text_input("Nuovo Username", key="register_username")
+    new_password = st.text_input("Nuova Password", type="password", key="register_password")
+    if st.button("Registrati", key="register_button"):
         if new_username and new_password:
             if register(new_username, new_password):
                 st.success("Registrazione completata! Procedi con il login.")
@@ -88,26 +90,26 @@ elif st.session_state["page"] == "register":
                 st.error("L'utente esiste già.")
         else:
             st.error("Compila tutti i campi.")
-    if st.button("Torna al Login"):
+    if st.button("Torna al Login", key="back_to_login_button"):
         handle_navigation("login")
 
 # Pagina di Reset Password
 elif st.session_state["page"] == "Reset Password":
     st.title("Reset Password")
-    username = st.text_input("Inserisci il tuo username per inviare un'email di reset:")
-    if st.button("Invia Email"):
+    username = st.text_input("Inserisci il tuo username per inviare un'email di reset:", key="reset_username")
+    if st.button("Invia Email", key="send_reset_email_button"):
         if request_password_reset(username):
             st.success("Email inviata! Controlla la tua casella di posta.")
         else:
             st.error("Utente non trovato.")
-    token = st.text_input("Inserisci il token ricevuto via email:")
-    new_password = st.text_input("Inserisci la nuova password:", type="password")
-    if st.button("Reimposta Password"):
+    token = st.text_input("Inserisci il token ricevuto via email:", key="reset_token")
+    new_password = st.text_input("Inserisci la nuova password:", type="password", key="new_password")
+    if st.button("Reimposta Password", key="reset_password_button"):
         if reset_password(token, new_password):
             st.success("Password aggiornata con successo!")
         else:
             st.error("Token non valido o scaduto.")
-    if st.button("Torna al Login"):
+    if st.button("Torna al Login", key="back_to_login_from_reset_button"):
         handle_navigation("login")
 
 # Pagina di Caricamento File
