@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Streamlit
+.streamlit/
+
+# Log Files
+*.log
+logs/
+
+# MacOS
+.DS_Store
+
+# Virtual Environment
+venv/
+env/
+
+# Jupyter Notebook checkpoints (se usi notebook nel progetto)
+.ipynb_checkpoints/
+
+# Ignora i file di output generati dall'app
+output/
+*.csv
+*.xls
+*.xlsx
+
+# Sistema Operativo
+Thumbs.db
