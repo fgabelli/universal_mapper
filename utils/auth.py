@@ -2,19 +2,13 @@ import hashlib
 import random
 import string
 import smtplib
+import json
+import os
 from email.mime.text import MIMEText
 
-# Simulazione database utenti
-USERS = {
-    "nilufar": {"email": "it@nilufar.com", "password": "64b3e3b48906caa365d0d152f2008bb602064ddca9972d7e2d51dc2bba44a3d7"},
-    "revan": {"email": "sviluppo@revan.it", "password": "ca51e6e7d4662a728a6d14797fd568354fadc233021455998816f821d3aeb7ae"},
-    "cliente3": {"email": "cliente3@example.com", "password": "d29550f242699b2504283a52ecbdff7e5945b7f01c92203e3a241e45b53b76bb"},
-    "user1": {"email": "user1@example.com", "password": hashlib.sha256("password1".encode()).hexdigest()},
-    "user2": {"email": "user2@example.com", "password": hashlib.sha256("password2".encode()).hexdigest()},
-}
-
-# Simulazione di token per reset password
-RESET_TOKENS = {}
+# Percorsi dei file di dati
+USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
+RESET_TOKENS_FILE = os.path.join(os.path.dirname(__file__), "reset_tokens.json")
 
 # Configurazione email (da personalizzare)
 EMAIL_ADDRESS = "youremail@example.com"
@@ -22,6 +16,36 @@ EMAIL_PASSWORD = "yourpassword"
 SMTP_SERVER = "smtp.example.com"
 SMTP_PORT = 587
 
+# Funzioni per gestire il caricamento e il salvataggio dei dati
+def load_users():
+    """Carica gli utenti dal file JSON."""
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_users(users):
+    """Salva gli utenti nel file JSON."""
+    with open(USERS_FILE, "w") as f:
+        json.dump(users, f, indent=4)
+
+def load_reset_tokens():
+    """Carica i token di reset dal file JSON."""
+    if os.path.exists(RESET_TOKENS_FILE):
+        with open(RESET_TOKENS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_reset_tokens(tokens):
+    """Salva i token di reset nel file JSON."""
+    with open(RESET_TOKENS_FILE, "w") as f:
+        json.dump(tokens, f, indent=4)
+
+# Carica dati iniziali
+USERS = load_users()
+RESET_TOKENS = load_reset_tokens()
+
+# Funzioni di autenticazione
 def login(username, password):
     """Verifica le credenziali di accesso."""
     if username in USERS:
@@ -37,6 +61,7 @@ def register(username, password):
             "email": f"{username}@example.com",  # Usa un'email fittizia
             "password": hashlib.sha256(password.encode()).hexdigest(),
         }
+        save_users(USERS)
         return True
     return False
 
@@ -66,6 +91,7 @@ def request_password_reset(username):
         email = USERS[username]["email"]
         token = generate_token()
         RESET_TOKENS[token] = username
+        save_reset_tokens(RESET_TOKENS)
         send_reset_email(email, token)
         return True
     return False
@@ -75,5 +101,7 @@ def reset_password(token, new_password):
     if token in RESET_TOKENS:
         username = RESET_TOKENS.pop(token)
         USERS[username]["password"] = hashlib.sha256(new_password.encode()).hexdigest()
+        save_users(USERS)
+        save_reset_tokens(RESET_TOKENS)
         return True
     return False
