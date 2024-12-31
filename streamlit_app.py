@@ -212,4 +212,5 @@ elif st.session_state["page"] == "Account":
 # Pagina di Logout
 elif st.session_state["page"] == "Logout":
     st.session_state["authenticated"] = False
-    st.
+    st.session_state["page"] = "login"
+    st.success("Disconnesso con successo!")
