@@ -6,6 +6,9 @@ from email.mime.text import MIMEText
 
 # Simulazione database utenti
 USERS = {
+    "nilufar": {"email": "it@nilufar.com", "password": "64b3e3b48906caa365d0d152f2008bb602064ddca9972d7e2d51dc2bba44a3d7"},
+    "revan": {"email": "sviluppo@revan.it", "password": "ca51e6e7d4662a728a6d14797fd568354fadc233021455998816f821d3aeb7ae"},
+    "cliente3": {"email": "cliente3@example.com", "password": "d29550f242699b2504283a52ecbdff7e5945b7f01c92203e3a241e45b53b76bb"},
     "user1": {"email": "user1@example.com", "password": hashlib.sha256("password1".encode()).hexdigest()},
     "user2": {"email": "user2@example.com", "password": hashlib.sha256("password2".encode()).hexdigest()},
 }
