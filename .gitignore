@@ -31,3 +31,5 @@ Thumbs.db
 
 "utils/users.json" 
 "utils/reset_tokens.json" 
+
+backend_user_manual.py
