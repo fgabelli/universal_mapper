@@ -33,3 +33,5 @@ Thumbs.db
 "utils/reset_tokens.json" 
 
 backend_user_manual.py
+
+.env
