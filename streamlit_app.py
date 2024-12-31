@@ -1,4 +1,5 @@
 import os
+import json
 import streamlit as st
 from decouple import config
 import smtplib
@@ -9,13 +10,35 @@ import uuid
 # Configurazione Streamlit
 st.set_page_config(page_title="Universal Mapper", layout="wide")
 
-# Simulazione database utenti (per demo, usa un database reale in produzione)
-users = {
-    "user@example.com": {"password": "password123"}
-}
+# Percorsi dei file
+USERS_FILE = os.path.join("utils", "users.json")
+TOKENS_FILE = os.path.join("utils", "reset_tokens.json")
 
-# Dizionario per memorizzare i token di reset password temporanei
-reset_tokens = {}
+# Funzione per leggere un file JSON
+def read_json(file_path):
+    if not os.path.exists(file_path):
+        return {}
+    with open(file_path, "r") as file:
+        return json.load(file)
+
+# Funzione per scrivere un file JSON
+def write_json(file_path, data):
+    with open(file_path, "w") as file:
+        json.dump(data, file, indent=4)
+
+# Funzioni per utenti
+def read_users():
+    return read_json(USERS_FILE)
+
+def write_users(users):
+    write_json(USERS_FILE, users)
+
+# Funzioni per token
+def read_tokens():
+    return read_json(TOKENS_FILE)
+
+def write_tokens(tokens):
+    write_json(TOKENS_FILE, tokens)
 
 # Funzione per inviare email
 def send_email(to_email, subject, message):
@@ -46,31 +69,41 @@ def generate_token():
 
 # Funzione per richiedere il reset della password
 def request_password_reset(email):
+    users = read_users()
+    tokens = read_tokens()
     if email not in users:
         return False
     token = generate_token()
-    reset_tokens[email] = token
+    tokens[email] = token
+    write_tokens(tokens)
     message = f"Usa questo token per reimpostare la tua password: {token}"
     return send_email(email, "Reset della tua password", message)
 
 # Funzione per reimpostare la password
 def reset_password(token, new_password):
-    for email, saved_token in reset_tokens.items():
+    users = read_users()
+    tokens = read_tokens()
+    for email, saved_token in tokens.items():
         if token == saved_token:
             users[email]["password"] = new_password
-            del reset_tokens[email]
+            write_users(users)
+            del tokens[email]
+            write_tokens(tokens)
             return True
     return False
 
 # Funzione per il login
 def login(email, password):
+    users = read_users()
     return email in users and users[email]["password"] == password
 
 # Funzione per la registrazione
 def register(email, password):
+    users = read_users()
     if email in users:
         return False
     users[email] = {"password": password}
+    write_users(users)
     return True
 
 # Inizializza lo stato
@@ -150,23 +183,3 @@ elif st.session_state["page"] == "Caricamento File":
     if st.button("Logout"):
         st.session_state["authenticated"] = False
         st.session_state["page"] = "login"
-
-elif st.session_state["page"] == "Gestione Profili":
-    st.title("Gestione Profili")
-    st.write("Qui puoi gestire i tuoi profili salvati.")
-    st.warning("Funzionalità in sviluppo.")
-
-elif st.session_state["page"] == "Manuale":
-    st.title("Manuale Utente")
-    st.markdown("""
-    ### Benvenuto nel Manuale Utente di Universal Mapper
-    Questa applicazione ti consente di:
-    - Caricare file sorgente e tracciati record.
-    - Gestire i tuoi profili di associazione.
-    - Generare file di output personalizzati.
-    """)
-
-elif st.session_state["page"] == "Logout":
-    st.session_state["authenticated"] = False
-    st.session_state["page"] = "login"
-    st.success("Disconnesso con successo!")
