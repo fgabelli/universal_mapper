@@ -29,5 +29,5 @@ output/
 # Sistema Operativo
 Thumbs.db
 
-utils/users.json
-utils/reset_tokens.json
+"utils/users.json" 
+"utils/reset_tokens.json" 
