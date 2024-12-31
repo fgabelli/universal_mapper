@@ -1,39 +1,17 @@
 import os
 import streamlit as st
 
-# Configurazione dell'app - deve essere il primo comando Streamlit
+# Configurazione dell'app - deve essere il PRIMO comando Streamlit
 st.set_page_config(page_title="Universal Mapper", layout="wide")
-
-# Messaggi di debug
-st.write("App caricata correttamente - Avvio in corso...")
 
 # Prova ad importare moduli
 try:
     from utils.auth import login, register, request_password_reset, reset_password
-    st.write("Modulo auth importato correttamente.")
-except ImportError as e:
-    st.error(f"Errore durante l'importazione di auth: {e}")
-
-try:
     from utils.file_processing import upload_file, preview_file, get_columns, generate_output
-    st.write("Modulo file_processing importato correttamente.")
-except ImportError as e:
-    st.error(f"Errore durante l'importazione di file_processing: {e}")
-
-try:
     from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
-    st.write("Modulo profiles importato correttamente.")
 except ImportError as e:
-    st.error(f"Errore durante l'importazione di profiles: {e}")
-
-# Continua con il resto del codice...
-
-from utils.auth import login, register, request_password_reset, reset_password
-from utils.file_processing import upload_file, preview_file, get_columns, generate_output
-from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
-
-# Configurazione dell'app
-st.set_page_config(page_title="Universal Mapper", layout="wide")
+    st.error(f"Errore durante l'importazione dei moduli: {e}")
+    st.stop()
 
 # Funzione per mostrare l'intestazione con logo e nome app
 def show_header():
