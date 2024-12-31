@@ -8,7 +8,6 @@ st.set_page_config(page_title="Universal Mapper", layout="wide")
 
 # Percorsi dei file JSON
 USERS_FILE = os.path.join("utils", "users.json")
-TOKENS_FILE = os.path.join("utils", "reset_tokens.json")
 
 # Funzione per leggere un file JSON
 def read_json(file_path):
@@ -28,13 +27,6 @@ def read_users():
 
 def write_users(users):
     write_json(USERS_FILE, users)
-
-# Funzioni per token
-def read_tokens():
-    return read_json(TOKENS_FILE)
-
-def write_tokens(tokens):
-    write_json(TOKENS_FILE, tokens)
 
 # Funzione per inviare email
 def send_email(to_email, subject, message):
@@ -70,25 +62,22 @@ def generate_token():
 # Funzione per richiedere il reset della password
 def request_password_reset(email):
     users = read_users()
-    tokens = read_tokens()
     if email not in users:
         return False
     token = generate_token()
-    tokens[email] = token
-    write_tokens(tokens)
+    users[email]["reset_token"] = token
+    write_users(users)
     message = f"Usa questo token per reimpostare la tua password: {token}"
     return send_email(email, "Reset della tua password", message)
 
 # Funzione per reimpostare la password
 def reset_password(token, new_password):
     users = read_users()
-    tokens = read_tokens()
-    for email, saved_token in tokens.items():
-        if token == saved_token:
+    for email, data in users.items():
+        if data.get("reset_token") == token:
             users[email]["password"] = new_password
+            del users[email]["reset_token"]
             write_users(users)
-            del tokens[email]
-            write_tokens(tokens)
             return True
     return False
 
@@ -150,7 +139,10 @@ with st.sidebar:
         st.session_state["page"] = page
     else:
         st.title("Accesso richiesto")
-        st.session_state["page"] = "login"
+        if st.button("Vai alla Registrazione", key="goto_register_button_sidebar"):
+            st.session_state["page"] = "register"
+        if st.button("Hai dimenticato la password?", key="forgot_password_button_sidebar"):
+            st.session_state["page"] = "Reset Password"
 
 # Funzione di gestione delle pagine
 def handle_navigation(page_name):
@@ -168,10 +160,6 @@ if st.session_state["page"] == "login":
             handle_navigation("Caricamento File")
         else:
             st.error("Credenziali errate.")
-    if st.button("Vai alla Registrazione", key="goto_register_button"):
-        handle_navigation("register")
-    if st.button("Hai dimenticato la password?", key="forgot_password_button"):
-        handle_navigation("Reset Password")
 
 elif st.session_state["page"] == "register":
     st.title("Registrazione")
@@ -186,8 +174,6 @@ elif st.session_state["page"] == "register":
                 st.error("L'utente esiste già.")
         else:
             st.error("Compila tutti i campi.")
-    if st.button("Torna al Login", key="back_to_login_button"):
-        handle_navigation("login")
 
 elif st.session_state["page"] == "Reset Password":
     st.title("Reset Password")
@@ -204,8 +190,6 @@ elif st.session_state["page"] == "Reset Password":
             st.success("Password aggiornata con successo!")
         else:
             st.error("Token non valido o scaduto.")
-    if st.button("Torna al Login", key="back_to_login_from_reset_button"):
-        handle_navigation("login")
 
 elif st.session_state["page"] == "Caricamento File":
     st.title("Caricamento File")
