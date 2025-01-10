@@ -2,13 +2,8 @@ import hashlib
 import random
 import string
 import smtplib
-import json
 import os
 from email.mime.text import MIMEText
-
-# Percorsi dei file di dati
-USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
-RESET_TOKENS_FILE = os.path.join(os.path.dirname(__file__), "reset_tokens.json")
 
 # Configurazione email (da personalizzare)
 EMAIL_ADDRESS = "youremail@example.com"
@@ -16,55 +11,34 @@ EMAIL_PASSWORD = "yourpassword"
 SMTP_SERVER = "smtp.example.com"
 SMTP_PORT = 587
 
-# Funzioni per gestire il caricamento e il salvataggio dei dati
-def load_users():
-    """Carica gli utenti dal file JSON."""
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, "r") as f:
-            try:
-                return json.load(f)
-            except json.JSONDecodeError as e:
-                print(f"Errore nel file users.json: {e}")
-                return {}
-    return {}
-
-def save_users(users):
-    """Salva gli utenti nel file JSON."""
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f, indent=4)
-
-def load_reset_tokens():
-    """Carica i token di reset dal file JSON."""
-    if os.path.exists(RESET_TOKENS_FILE):
-        with open(RESET_TOKENS_FILE, "r") as f:
-            try:
-                return json.load(f)
-            except json.JSONDecodeError as e:
-                print(f"Errore nel file reset_tokens.json: {e}")
-                return {}
-    return {}
-
-def save_reset_tokens(tokens):
-    """Salva i token di reset nel file JSON."""
-    with open(RESET_TOKENS_FILE, "w") as f:
-        json.dump(tokens, f, indent=4)
-
-# Carica dati iniziali
-USERS = load_users()
-RESET_TOKENS = load_reset_tokens()
+# Credenziali temporanee
+USERS = {
+    "admin": {
+        "email": "admin@example.com",
+        "password": hashlib.sha256("password".encode()).hexdigest()  # password: "password"
+    },
+    "testuser": {
+        "nilufar": "it@nilufar.com",
+        "password": hashlib.sha256("Nilve@2024_25".encode()).hexdigest()  # password: "Nilve@2024_25"
+    }
+}
 
 # Funzioni di autenticazione
 def login(username, password):
     """Verifica le credenziali di accesso."""
-    print(f"DEBUG: Tentativo di login con username: {username}")
+    print(f"DEBUG: Tentativo di login per {username}")  # Logga l'utente che tenta l'accesso
+    print(f"DEBUG: USERS disponibili: {USERS}")  # Logga gli utenti caricati
     if username in USERS:
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
-        print(f"DEBUG: Hash inserito: {hashed_password}")
-        print(f"DEBUG: Hash salvato: {USERS[username]['password']}")
+        print(f"DEBUG: Password inserita hashata: {hashed_password}")
+        print(f"DEBUG: Password attesa: {USERS[username]['password']}")
         if USERS[username]["password"] == hashed_password:
-            print("Login riuscito!")
+            print("DEBUG: Login riuscito!")
             return True
-    print("Credenziali errate.")
+        else:
+            print("DEBUG: Password errata!")
+    else:
+        print("DEBUG: Nome utente non trovato!")
     return False
 
 def register(username, password):
@@ -74,10 +48,8 @@ def register(username, password):
             "email": f"{username}@example.com",  # Usa un'email fittizia
             "password": hashlib.sha256(password.encode()).hexdigest(),
         }
-        save_users(USERS)
-        print(f"Utente {username} registrato con successo.")
+        print("DEBUG: Registrato nuovo utente.")
         return True
-    print(f"Errore: l'utente {username} esiste già.")
     return False
 
 def generate_token():
@@ -97,7 +69,6 @@ def send_reset_email(email, token):
             server.starttls()
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             server.send_message(message)
-        print(f"Email inviata con successo a {email}.")
     except Exception as e:
         print(f"Errore durante l'invio dell'email: {e}")
 
@@ -106,34 +77,12 @@ def request_password_reset(username):
     if username in USERS:
         email = USERS[username]["email"]
         token = generate_token()
-        RESET_TOKENS[token] = username
-        save_reset_tokens(RESET_TOKENS)
+        print(f"DEBUG: Token generato per {username}: {token}")
         send_reset_email(email, token)
-        print(f"Token generato per {username}: {token}")
         return True
-    print(f"Errore: username {username} non trovato.")
     return False
 
 def reset_password(token, new_password):
     """Resetta la password utilizzando il token."""
-    if token in RESET_TOKENS:
-        username = RESET_TOKENS.pop(token)
-        USERS[username]["password"] = hashlib.sha256(new_password.encode()).hexdigest()
-        save_users(USERS)
-        save_reset_tokens(RESET_TOKENS)
-        print(f"Password reimpostata con successo per {username}.")
-        return True
-    print("Errore: token non valido.")
+    print(f"DEBUG: Token non gestito in memoria, la funzione è stata richiamata con il token {token}.")
     return False
-
-# Test locale
-if __name__ == "__main__":
-    print("\n=== Test di debug ===")
-    USERS = load_users()
-    username_test = "admin"
-    password_test = "password"  # La password reale che vuoi testare
-
-    if login(username_test, password_test):
-        print("Login riuscito!")
-    else:
-        print("Credenziali errate.")
