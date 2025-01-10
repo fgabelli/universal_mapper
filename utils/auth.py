@@ -22,14 +22,11 @@ def load_users():
     if os.path.exists(USERS_FILE):
         with open(USERS_FILE, "r") as f:
             try:
-                data = json.load(f)
-                print(f"DEBUG: File JSON caricato correttamente: {data}")
-                return data
+                return json.load(f)
             except json.JSONDecodeError as e:
-                print(f"Errore nel file JSON: {e}")
+                print(f"Errore nel file users.json: {e}")
                 return {}
     return {}
-
 
 def save_users(users):
     """Salva gli utenti nel file JSON."""
@@ -40,7 +37,11 @@ def load_reset_tokens():
     """Carica i token di reset dal file JSON."""
     if os.path.exists(RESET_TOKENS_FILE):
         with open(RESET_TOKENS_FILE, "r") as f:
-            return json.load(f)
+            try:
+                return json.load(f)
+            except json.JSONDecodeError as e:
+                print(f"Errore nel file reset_tokens.json: {e}")
+                return {}
     return {}
 
 def save_reset_tokens(tokens):
@@ -54,19 +55,16 @@ RESET_TOKENS = load_reset_tokens()
 
 # Funzioni di autenticazione
 def login(username, password):
-    """Verifica le credenziali di accesso con messaggi di debug."""
-    print(f"DEBUG: Tentativo di accesso con username '{username}'")
+    """Verifica le credenziali di accesso."""
+    print(f"DEBUG: Tentativo di login con username: {username}")
     if username in USERS:
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
-        print(f"DEBUG: Password hash inserita: {hashed_password}")
-        print(f"DEBUG: Password hash attesa: {USERS[username]['password']}")
+        print(f"DEBUG: Hash inserito: {hashed_password}")
+        print(f"DEBUG: Hash salvato: {USERS[username]['password']}")
         if USERS[username]["password"] == hashed_password:
-            print("DEBUG: Accesso riuscito!")
+            print("Login riuscito!")
             return True
-        else:
-            print("DEBUG: Password errata.")
-    else:
-        print("DEBUG: Username non trovato.")
+    print("Credenziali errate.")
     return False
 
 def register(username, password):
@@ -77,7 +75,9 @@ def register(username, password):
             "password": hashlib.sha256(password.encode()).hexdigest(),
         }
         save_users(USERS)
+        print(f"Utente {username} registrato con successo.")
         return True
+    print(f"Errore: l'utente {username} esiste già.")
     return False
 
 def generate_token():
@@ -97,6 +97,7 @@ def send_reset_email(email, token):
             server.starttls()
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             server.send_message(message)
+        print(f"Email inviata con successo a {email}.")
     except Exception as e:
         print(f"Errore durante l'invio dell'email: {e}")
 
@@ -108,7 +109,9 @@ def request_password_reset(username):
         RESET_TOKENS[token] = username
         save_reset_tokens(RESET_TOKENS)
         send_reset_email(email, token)
+        print(f"Token generato per {username}: {token}")
         return True
+    print(f"Errore: username {username} non trovato.")
     return False
 
 def reset_password(token, new_password):
@@ -118,5 +121,19 @@ def reset_password(token, new_password):
         USERS[username]["password"] = hashlib.sha256(new_password.encode()).hexdigest()
         save_users(USERS)
         save_reset_tokens(RESET_TOKENS)
+        print(f"Password reimpostata con successo per {username}.")
         return True
+    print("Errore: token non valido.")
     return False
+
+# Test locale
+if __name__ == "__main__":
+    print("\n=== Test di debug ===")
+    USERS = load_users()
+    username_test = "admin"
+    password_test = "password"  # La password reale che vuoi testare
+
+    if login(username_test, password_test):
+        print("Login riuscito!")
+    else:
+        print("Credenziali errate.")
