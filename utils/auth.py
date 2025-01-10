@@ -21,8 +21,15 @@ def load_users():
     """Carica gli utenti dal file JSON."""
     if os.path.exists(USERS_FILE):
         with open(USERS_FILE, "r") as f:
-            return json.load(f)
+            try:
+                data = json.load(f)
+                print(f"DEBUG: File JSON caricato correttamente: {data}")
+                return data
+            except json.JSONDecodeError as e:
+                print(f"Errore nel file JSON: {e}")
+                return {}
     return {}
+
 
 def save_users(users):
     """Salva gli utenti nel file JSON."""
