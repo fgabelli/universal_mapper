@@ -47,11 +47,19 @@ RESET_TOKENS = load_reset_tokens()
 
 # Funzioni di autenticazione
 def login(username, password):
-    """Verifica le credenziali di accesso."""
+    """Verifica le credenziali di accesso con messaggi di debug."""
+    print(f"DEBUG: Tentativo di accesso con username '{username}'")
     if username in USERS:
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        print(f"DEBUG: Password hash inserita: {hashed_password}")
+        print(f"DEBUG: Password hash attesa: {USERS[username]['password']}")
         if USERS[username]["password"] == hashed_password:
+            print("DEBUG: Accesso riuscito!")
             return True
+        else:
+            print("DEBUG: Password errata.")
+    else:
+        print("DEBUG: Username non trovato.")
     return False
 
 def register(username, password):
