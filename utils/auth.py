@@ -17,8 +17,8 @@ USERS = {
         "email": "admin@example.com",
         "password": hashlib.sha256("password".encode()).hexdigest()  # password: "password"
     },
-    "testuser": {
-        "nilufar": "it@nilufar.com",
+    "nilufar": {
+        "email": "it@nilufar.com",
         "password": hashlib.sha256("Nilve@2024_25".encode()).hexdigest()  # password: "Nilve@2024_25"
     }
 }
