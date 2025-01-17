@@ -19,7 +19,7 @@ def get_user_id(email):
                 st.info(f"DEBUG: Utente trovato con ID {result[0]} per email {email}")
                 return result[0]
             else:
-                st.warning(f"DEBUG: Nessun utente trovato per email {email}")
+                st.warning(f"DEBUG: Nessun utente trovato per email {email}. Controlla il database.")
                 return None
         except Exception as e:
             st.error(f"Errore nella query per ottenere l'ID utente: {e}")
