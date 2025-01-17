@@ -85,3 +85,22 @@ def restore_profiles():
                     (user_id, name, json.dumps(data))
                 )
         conn.commit()
+
+# Funzione per associare le colonne
+def associate_columns(source_columns, target_columns):
+    """Crea un'interfaccia per associare le colonne del file sorgente e quelle di destinazione."""
+    associations = {}
+    for target_column in target_columns:
+        print(f"Associa una colonna per: {target_column}")
+        print(f"Opzioni disponibili: {source_columns}")
+        choice = input("Scegli una colonna: ")
+        associations[target_column] = choice
+
+    return associations
+
+# Debug temporaneo per il caricamento
+if __name__ == "__main__":
+    source = ["Nome", "Cognome", "Email"]
+    target = ["First Name", "Last Name", "Email Address"]
+    associations_result = associate_columns(source, target)
+    print("Associazioni completate:", associations_result)
