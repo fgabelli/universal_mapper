@@ -1,10 +1,11 @@
 import os
 import json
 import streamlit as st
-from utils.database import initialize_db
+from utils.database import initialize_db, DB_PATH
 from utils.auth import login, register
 from utils.file_processing import upload_file, preview_file, get_columns, generate_output
 from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
+
 
 # Inizializza il database
 initialize_db()
