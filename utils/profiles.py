@@ -1,6 +1,7 @@
 import json
 import os
 import psycopg2
+import streamlit as st
 from utils.database import get_connection
 
 # Percorso del file JSON di backup (opzionale)
@@ -11,24 +12,24 @@ def get_user_id(email):
     """Restituisce l'ID numerico dell'utente dato l'email."""
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id FROM users WHERE email = %s", (email,)
-        )
+        cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
         result = cursor.fetchone()
-        return result["id"] if result else None
+        if not result:
+            st.error("Utente non trovato.")
+        return result[0] if result else None
 
 # Funzione per salvare un profilo per un utente specifico nel database
 def save_profile(user_id, profile_name, associations):
-    try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        try:
             cursor.execute(
                 "INSERT INTO profiles (user_id, name, data) VALUES (%s, %s, %s)",
                 (user_id, profile_name, json.dumps(associations))
             )
             conn.commit()
-    except Exception as e:
-        raise ValueError(f"Errore durante il salvataggio del profilo: {e}")
+        except Exception as e:
+            st.error(f"Errore nel salvataggio del profilo: {e}")
 
 # Funzione per caricare tutti i profili per un utente specifico
 def list_profiles(user_email):
@@ -39,9 +40,7 @@ def list_profiles(user_email):
 
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id, name FROM profiles WHERE user_id = %s", (user_id,)
-        )
+        cursor.execute("SELECT id, name FROM profiles WHERE user_id = %s", (user_id,))
         return cursor.fetchall()
 
 # Funzione per caricare un profilo specifico
