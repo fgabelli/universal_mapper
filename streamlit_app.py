@@ -13,6 +13,19 @@ st.set_page_config(page_title="Universal Mapper", layout="wide")
 # Inizializza il database
 initialize_db()
 
+# Debug temporaneo per controllare gli utenti nel database
+import sqlite3
+from utils.database import DB_PATH
+
+def debug_check_users():
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users")
+        users = cursor.fetchall()
+        st.write("Utenti nel database:", users)
+
+debug_check_users()
+
 # Verifica l'esistenza del database
 if os.path.exists(DB_PATH):
     st.write(f"Database trovato: {DB_PATH}")
