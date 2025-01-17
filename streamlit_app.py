@@ -108,11 +108,11 @@ elif st.session_state["page"] == "register":
     password = st.text_input("Password", type="password", key="register_password")
     if st.button("Registrati", key="register_button"):
         if email and password:
-            if register(email, password):
-                st.success("Registrazione completata! Procedi con il login.")
-                handle_navigation("login")
+            success = register(email, password)
+            if success:
+                st.success(f"Registrazione completata per: {email}")
             else:
-                st.error("L'utente esiste già.")
+                st.error("Registrazione fallita: L'utente potrebbe già esistere.")
         else:
             st.error("Compila tutti i campi.")
 

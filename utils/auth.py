@@ -1,107 +1,73 @@
-import hashlib
-import random
-import string
-import smtplib
-import json
+import sqlite3
 import os
-from email.mime.text import MIMEText
 
-# Percorsi dei file di dati
-USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
-RESET_TOKENS_FILE = os.path.join(os.path.dirname(__file__), "reset_tokens.json")
+# Percorso del database
+DB_PATH = os.path.join(os.getcwd(), "app_data.db")
 
-# Configurazione email (da personalizzare)
-EMAIL_ADDRESS = "youremail@example.com"
-EMAIL_PASSWORD = "yourpassword"
-SMTP_SERVER = "smtp.example.com"
-SMTP_PORT = 587
+# Connessione al database
+def get_connection():
+    return sqlite3.connect(DB_PATH)
 
-# Funzioni per gestire il caricamento e il salvataggio dei dati
-def load_users():
-    """Carica gli utenti dal file JSON."""
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, "r") as f:
-            return json.load(f)
-    return {}
+# Creazione delle tabelle
+def initialize_db():
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        # Tabella utenti
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+        # Tabella profili
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS profiles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            data TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        )
+        """)
+        conn.commit()
 
-def save_users(users):
-    """Salva gli utenti nel file JSON."""
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f, indent=4)
-
-def load_reset_tokens():
-    """Carica i token di reset dal file JSON."""
-    if os.path.exists(RESET_TOKENS_FILE):
-        with open(RESET_TOKENS_FILE, "r") as f:
-            return json.load(f)
-    return {}
-
-def save_reset_tokens(tokens):
-    """Salva i token di reset nel file JSON."""
-    with open(RESET_TOKENS_FILE, "w") as f:
-        json.dump(tokens, f, indent=4)
-
-# Carica dati iniziali
-USERS = load_users()
-RESET_TOKENS = load_reset_tokens()
-
-# Funzioni di autenticazione
-def login(username, password):
-    """Verifica le credenziali di accesso."""
-    if username in USERS:
-        hashed_password = hashlib.sha256(password.encode()).hexdigest()
-        if USERS[username]["password"] == hashed_password:
+# Funzione per registrare un utente
+def register(email, password):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO users (email, password) VALUES (?, ?)", 
+                (email, password)
+            )
+            conn.commit()  # Salva i dati nel database
+            print(f"Utente registrato: {email}")  # Debug
             return True
-    return False
+        except sqlite3.IntegrityError as e:
+            print(f"Errore durante la registrazione: {e}")  # Debug
+            return False  # L'email è già registrata
 
-def register(username, password):
-    """Registra un nuovo utente."""
-    if username not in USERS:
-        USERS[username] = {
-            "email": f"{username}@example.com",  # Usa un'email fittizia
-            "password": hashlib.sha256(password.encode()).hexdigest(),
-        }
-        save_users(USERS)
-        return True
-    return False
+# Funzione per autenticare un utente
+def login(email, password):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM users WHERE email = ? AND password = ?", 
+            (email, password)
+        )
+        user = cursor.fetchone()
+        return user is not None
 
-def generate_token():
-    """Genera un token univoco per il reset della password."""
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+# Funzione di debug per verificare gli utenti nel database
+def debug_check_users():
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users")
+        users = cursor.fetchall()
+        return users
 
-def send_reset_email(email, token):
-    """Invia un'email con il link per il reset della password."""
-    reset_link = f"http://localhost:8501/reset_password?token={token}"  # Modifica con l'URL del tuo Streamlit Cloud
-    message = MIMEText(f"Clicca qui per reimpostare la tua password: {reset_link}")
-    message["Subject"] = "Reimposta la tua password"
-    message["From"] = EMAIL_ADDRESS
-    message["To"] = email
-
-    try:
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-            server.send_message(message)
-    except Exception as e:
-        print(f"Errore durante l'invio dell'email: {e}")
-
-def request_password_reset(username):
-    """Genera un token per il reset della password e invia un'email."""
-    if username in USERS:
-        email = USERS[username]["email"]
-        token = generate_token()
-        RESET_TOKENS[token] = username
-        save_reset_tokens(RESET_TOKENS)
-        send_reset_email(email, token)
-        return True
-    return False
-
-def reset_password(token, new_password):
-    """Resetta la password utilizzando il token."""
-    if token in RESET_TOKENS:
-        username = RESET_TOKENS.pop(token)
-        USERS[username]["password"] = hashlib.sha256(new_password.encode()).hexdigest()
-        save_users(USERS)
-        save_reset_tokens(RESET_TOKENS)
-        return True
-    return False
+# Inizializza il database
+initialize_db()
