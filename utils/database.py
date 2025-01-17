@@ -2,7 +2,7 @@ import sqlite3
 import os
 
 # Percorso del database
-DB_PATH = os.path.join(os.path.dirname(__file__), "app_data.db")
+DB_PATH = os.path.join(os.getcwd(), "app_data.db")
 
 # Connessione al database
 def get_connection():
@@ -33,3 +33,6 @@ def initialize_db():
         )
         """)
         conn.commit()
+
+# Inizializza il database
+initialize_db()
