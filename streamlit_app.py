@@ -111,8 +111,11 @@ elif st.session_state["page"] == "register":
             success = register(email, password)
             if success:
                 st.success(f"Registrazione completata per: {email}")
+                # Mostra tutti gli utenti per il debug
+                st.write("Utenti nel database:", debug_check_users())
             else:
                 st.error("Registrazione fallita: L'utente potrebbe già esistere.")
+                st.write("Utenti nel database (debug):", debug_check_users())
         else:
             st.error("Compila tutti i campi.")
 
