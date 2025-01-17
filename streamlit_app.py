@@ -75,8 +75,6 @@ with st.sidebar:
         st.title("Accesso richiesto")
         if st.button("Vai alla Registrazione", key="goto_register_button_sidebar"):
             st.session_state["page"] = "register"
-        if st.button("Hai dimenticato la password?", key="forgot_password_button_sidebar"):
-            st.session_state["page"] = "Reset Password"
 
 # Funzione di gestione delle pagine
 def handle_navigation(page_name):
