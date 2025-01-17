@@ -1,24 +1,35 @@
 import json
-import os
-import sqlite3
+import psycopg2
 from utils.database import get_connection
 
-# Percorso del file JSON di backup (opzionale, per la migrazione)
-PROFILES_BACKUP_FILE = os.path.join(os.path.dirname(__file__), "profiles_backup.json")
+# Funzione per ottenere l'ID dell'utente dato l'email
+def get_user_id(email):
+    """Restituisce l'ID numerico dell'utente dato l'email."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id FROM users WHERE email = %s", (email,)
+        )
+        result = cursor.fetchone()
+        return result["id"] if result else None
 
 # Funzione per salvare un profilo per un utente specifico nel database
 def save_profile(user_id, profile_name, associations):
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO profiles (user_id, name, data) VALUES (?, ?, ?)",
+            "INSERT INTO profiles (user_id, name, data) VALUES (%s, %s, %s)",
             (user_id, profile_name, json.dumps(associations))
         )
         conn.commit()
 
 # Funzione per caricare tutti i profili per un utente specifico
-def list_profiles(user_id):
+def list_profiles(user_email):
     """Restituisce l'elenco dei profili per un determinato utente."""
+    user_id = get_user_id(user_email)
+    if not user_id:
+        return []  # Nessun utente trovato
+
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -26,12 +37,11 @@ def list_profiles(user_id):
         )
         return cursor.fetchall()
 
-
 # Funzione per caricare un profilo specifico
 def load_profile(profile_id):
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT data FROM profiles WHERE id = ?", (profile_id,))
+        cursor.execute("SELECT data FROM profiles WHERE id = %s", (profile_id,))
         result = cursor.fetchone()
         return json.loads(result[0]) if result else None
 
@@ -39,7 +49,7 @@ def load_profile(profile_id):
 def delete_profile(profile_id):
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM profiles WHERE id = ?", (profile_id,))
+        cursor.execute("DELETE FROM profiles WHERE id = %s", (profile_id,))
         conn.commit()
 
 # Funzione di backup: salva i profili in un file JSON (opzionale)
@@ -71,7 +81,7 @@ def restore_profiles():
         for user_id, profiles in backup.items():
             for name, data in profiles.items():
                 cursor.execute(
-                    "INSERT INTO profiles (user_id, name, data) VALUES (?, ?, ?)",
+                    "INSERT INTO profiles (user_id, name, data) VALUES (%s, %s, %s)",
                     (user_id, name, json.dumps(data))
                 )
         conn.commit()
