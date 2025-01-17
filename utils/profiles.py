@@ -14,9 +14,11 @@ def get_user_id(email):
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
         result = cursor.fetchone()
-        if not result:
-            st.error("Utente non trovato.")
-        return result[0] if result else None
+        if result and len(result) > 0:
+            return result[0]
+        else:
+            st.error(f"Utente non trovato per l'email: {email}.")
+            return None
 
 # Funzione per salvare un profilo per un utente specifico nel database
 def save_profile(user_id, profile_name, associations):
