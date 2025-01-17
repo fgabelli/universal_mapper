@@ -3,7 +3,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 # URL del database PostgreSQL
-DB_URL = "postgresql://postgres:Frabicom,2010@db.tgnezgsfcrzsjleokswu.supabase.co:5432/postgres"
+DB_URL = os.getenv("DB_URL")  # Legge la stringa di connessione dalle secrets
 
 # Connessione al database
 def get_connection():
