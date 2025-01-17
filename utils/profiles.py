@@ -18,10 +18,14 @@ def save_profile(user_id, profile_name, associations):
 
 # Funzione per caricare tutti i profili per un utente specifico
 def list_profiles(user_id):
+    """Restituisce l'elenco dei profili per un determinato utente."""
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name FROM profiles WHERE user_id = ?", (user_id,))
+        cursor.execute(
+            "SELECT id, name FROM profiles WHERE user_id = %s", (user_id,)
+        )
         return cursor.fetchall()
+
 
 # Funzione per caricare un profilo specifico
 def load_profile(profile_id):
