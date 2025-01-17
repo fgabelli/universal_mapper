@@ -7,6 +7,9 @@ from utils.file_processing import upload_file, preview_file, get_columns, genera
 from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
 
 
+# Configurazione dell'app - deve essere il PRIMO comando Streamlit
+st.set_page_config(page_title="Universal Mapper", layout="wide")
+
 # Inizializza il database
 initialize_db()
 
@@ -15,9 +18,6 @@ if os.path.exists(DB_PATH):
     st.write(f"Database trovato: {DB_PATH}")
 else:
     st.write("Database non trovato!")
-
-# Configurazione dell'app - deve essere il PRIMO comando Streamlit
-st.set_page_config(page_title="Universal Mapper", layout="wide")
 
 # Funzione per mostrare l'intestazione con logo e nome app
 def show_header():
