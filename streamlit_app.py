@@ -67,7 +67,7 @@ with st.sidebar:
         st.title("Navigazione")
         page = st.radio(
             "Vai a:",
-            options=["Caricamento File", "Gestione Profili", "Account", "Manuale", "Logout"],
+            options=["Caricamento File", "Gestione Profili", "Generazione File", "Account", "Manuale", "Logout"],
             key="page_selector"
         )
         st.session_state["page"] = page
@@ -152,14 +152,53 @@ elif st.session_state["page"] == "Gestione Profili":
     if st.session_state["authenticated_user"]:
         profiles = list_profiles(st.session_state["authenticated_user"])
         if profiles:
-            selected_profile = st.selectbox("Seleziona un profilo salvato", profiles)
+            selected_profile = st.selectbox("Seleziona un profilo salvato", [p[1] for p in profiles])
+
+            if st.button("Carica Profilo"):
+                profile_data = load_profile(selected_profile)
+                st.session_state["associations"] = profile_data
+                st.success(f"Profilo '{selected_profile}' caricato!")
+
             if st.button("Elimina Profilo"):
                 delete_profile(selected_profile, st.session_state["authenticated_user"])
                 st.success(f"Profilo '{selected_profile}' eliminato!")
         else:
             st.warning("Non ci sono profili salvati.")
+
+        # Salvataggio di un nuovo profilo
+        profile_name = st.text_input("Nome del profilo:")
+        if st.button("Salva Profilo"):
+            save_profile(
+                user_id=st.session_state["authenticated_user"],
+                profile_name=profile_name,
+                associations=st.session_state["associations"]
+            )
+            st.success(f"Profilo '{profile_name}' salvato!")
+
     else:
         st.error("Devi essere autenticato per gestire i profili.")
+
+elif st.session_state["page"] == "Generazione File":
+    st.title("Generazione File di Output")
+    if st.session_state["associations"]:
+        if st.button("Genera File"):
+            output_file = generate_output(
+                st.session_state["associations"],
+                output_format="CSV"
+            )
+            st.session_state["output_file"] = output_file
+            st.success("File generato con successo!")
+
+        if "output_file" in st.session_state:
+            with open(st.session_state["output_file"], "rb") as file:
+                st.download_button(
+                    label="Scarica il file generato",
+                    data=file,
+                    file_name="output.csv",
+                    mime="text/csv"
+                )
+    else:
+        st.warning("Non ci sono associazioni salvate per generare il file.")
 
 elif st.session_state["page"] == "Account":
     st.title("Impostazioni Account")
