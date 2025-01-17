@@ -36,6 +36,8 @@ show_header()
 # Inizializza lo stato
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
+if "authenticated_user" not in st.session_state:
+    st.session_state["authenticated_user"] = None
 if "page" not in st.session_state:
     st.session_state["page"] = "login"
 if "associations" not in st.session_state:
@@ -104,14 +106,17 @@ elif st.session_state["page"] == "Caricamento File":
 
 elif st.session_state["page"] == "Gestione Profili":
     st.title("Gestione Profili")
-    profiles = list_profiles(st.session_state["authenticated_user"])
-    if profiles:
-        selected_profile = st.selectbox("Seleziona un profilo salvato", profiles)
-        if st.button("Elimina Profilo"):
-            delete_profile(selected_profile, st.session_state["authenticated_user"])
-            st.success(f"Profilo '{selected_profile}' eliminato!")
+    if st.session_state["authenticated_user"]:
+        profiles = list_profiles(st.session_state["authenticated_user"])
+        if profiles:
+            selected_profile = st.selectbox("Seleziona un profilo salvato", profiles)
+            if st.button("Elimina Profilo"):
+                delete_profile(selected_profile, st.session_state["authenticated_user"])
+                st.success(f"Profilo '{selected_profile}' eliminato!")
+        else:
+            st.warning("Non ci sono profili salvati.")
     else:
-        st.warning("Non ci sono profili salvati.")
+        st.error("Devi essere autenticato per gestire i profili.")
 
 elif st.session_state["page"] == "Account":
     st.title("Impostazioni Account")
