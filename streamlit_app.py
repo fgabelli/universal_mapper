@@ -9,6 +9,12 @@ from utils.profiles import load_profile, save_profile, list_profiles, delete_pro
 # Inizializza il database
 initialize_db()
 
+# Verifica l'esistenza del database
+if os.path.exists(DB_PATH):
+    st.write(f"Database trovato: {DB_PATH}")
+else:
+    st.write("Database non trovato!")
+
 # Configurazione dell'app - deve essere il PRIMO comando Streamlit
 st.set_page_config(page_title="Universal Mapper", layout="wide")
 
