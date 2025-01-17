@@ -182,7 +182,7 @@ elif st.session_state["page"] == "Caricamento File":
         output_format = st.selectbox("Seleziona il formato del file generato:", ["CSV", "XLS", "XLSX"], key="output_format")
 
         # Generazione del file di output
-        if st.button("Genera File"):
+if st.button("Genera File"):
     if uploaded_source and st.session_state["associations"]:
         # Converti le associazioni in una lista di dizionari
         associations = [{"record": record_col, "source": source_col} 
@@ -199,6 +199,7 @@ elif st.session_state["page"] == "Caricamento File":
             st.error(f"Errore nella generazione del file: {e}")
     else:
         st.error("Assicurati di aver caricato i file e definito le associazioni.")
+
 
 
         # Download del file generato
