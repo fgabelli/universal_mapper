@@ -9,13 +9,14 @@ PROFILES_BACKUP_FILE = os.path.join(os.path.dirname(__file__), "profiles_backup.
 
 # Funzione per ottenere l'ID dell'utente dato l'email
 def get_user_id(email):
-    """Restituisce l'ID numerico dell'utente dato l'email, o None se non trovato."""
+    """Restituisce l'ID numerico dell'utente dato l'email, o None se l'utente non esiste."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
         result = cursor.fetchone()
-        if result is None:
-            st.error(f"Utente non trovato per l'email: {email}.")
+        if not result:
+            # Gestione del caso in cui l'utente non è trovato
+            st.error(f"Nessun utente trovato per l'email: {email}")
             return None
         return result[0]
 
@@ -36,8 +37,9 @@ def save_profile(user_id, profile_name, associations):
 def list_profiles(user_email):
     """Restituisce l'elenco dei profili per un determinato utente."""
     user_id = get_user_id(user_email)
-    if not user_id:
-        return []  # Ritorna un elenco vuoto se l'utente non è trovato
+    if user_id is None:
+        # Se l'utente non esiste, restituisce un elenco vuoto
+        return []
 
     with get_connection() as conn:
         cursor = conn.cursor()
