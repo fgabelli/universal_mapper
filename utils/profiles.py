@@ -15,8 +15,9 @@ def get_user_id(email):
         cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
         result = cursor.fetchone()
         if not result:
-            st.error(f"Nessun utente trovato per l'email: {email}")
+            st.error(f"DEBUG: Nessun utente trovato per l'email: {email}")
             return None
+        st.info(f"DEBUG: Utente trovato con ID {result[0]} per email {email}")
         return result[0]
 
 # Funzione per salvare un profilo per un utente specifico nel database
@@ -37,12 +38,16 @@ def list_profiles(user_email):
     """Restituisce l'elenco dei profili per un determinato utente."""
     user_id = get_user_id(user_email)
     if user_id is None:
+        st.error("DEBUG: L'ID utente non è stato trovato.")
         return []  # Restituisce un elenco vuoto se l'utente non esiste
 
+    st.info(f"DEBUG: Tentativo di recupero dei profili per user_id {user_id}")
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id, name FROM profiles WHERE user_id = %s", (user_id,))
         profiles = cursor.fetchall()
+        if not profiles:
+            st.warning("DEBUG: Nessun profilo trovato per l'utente.")
         return profiles if profiles else []
 
 # Funzione per caricare un profilo specifico

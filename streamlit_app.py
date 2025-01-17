@@ -212,6 +212,11 @@ elif st.session_state["page"] == "Caricamento File":
 
 elif st.session_state["page"] == "Gestione Profili":
     st.title("Gestione Profili")
+# Verifica se l'utente è autenticato
+    if "authenticated_user" in st.session_state:
+        st.info(f"DEBUG: Utente autenticato: {st.session_state['authenticated_user']}")
+    else:
+        st.error("DEBUG: Nessun utente autenticato.")
     if st.session_state["authenticated_user"]:
         profiles = list_profiles(st.session_state["authenticated_user"])
         if profiles:
