@@ -4,7 +4,7 @@ import streamlit as st
 from decouple import config
 from utils.auth import login, register, request_password_reset, reset_password
 from utils.file_processing import upload_file, preview_file, get_columns, generate_output
-from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
+from utils.profiles import load_profile, save_profile, list_profiles, delete_profile, load_all_profiles, save_all_profiles
 
 # Configurazione dell'app - deve essere il PRIMO comando Streamlit
 st.set_page_config(page_title="Universal Mapper", layout="wide")
@@ -71,6 +71,7 @@ if st.session_state["page"] == "login":
     if st.button("Login", key="login_button"):
         if login(email, password):
             st.session_state["authenticated"] = True
+            st.session_state["authenticated_user"] = email
             handle_navigation("Caricamento File")
         else:
             st.error("Credenziali errate.")
@@ -103,11 +104,11 @@ elif st.session_state["page"] == "Caricamento File":
 
 elif st.session_state["page"] == "Gestione Profili":
     st.title("Gestione Profili")
-    profiles = list_profiles()
+    profiles = list_profiles(st.session_state["authenticated_user"])
     if profiles:
         selected_profile = st.selectbox("Seleziona un profilo salvato", profiles)
         if st.button("Elimina Profilo"):
-            delete_profile(selected_profile)
+            delete_profile(selected_profile, st.session_state["authenticated_user"])
             st.success(f"Profilo '{selected_profile}' eliminato!")
     else:
         st.warning("Non ci sono profili salvati.")
