@@ -182,25 +182,23 @@ elif st.session_state["page"] == "Caricamento File":
         output_format = st.selectbox("Seleziona il formato del file generato:", ["CSV", "XLS", "XLSX"], key="output_format")
 
         # Generazione del file di output
-if st.button("Genera File"):
-    if uploaded_source and st.session_state["associations"]:
-        # Converti le associazioni in una lista di dizionari
-        associations = [{"record": record_col, "source": source_col} 
-                        for record_col, source_col in st.session_state["associations"].items()]
-        try:
-            output_file = generate_output(
-                uploaded_source,
-                associations,
-                output_format=st.session_state["output_format"]
-            )
-            st.session_state["output_file"] = output_file
-            st.success("File generato con successo!")
-        except Exception as e:
-            st.error(f"Errore nella generazione del file: {e}")
-    else:
-        st.error("Assicurati di aver caricato i file e definito le associazioni.")
-
-
+        if st.button("Genera File"):
+            if uploaded_source and st.session_state["associations"]:
+                # Converti le associazioni in una lista di dizionari
+                associations = [{"record": record_col, "source": source_col} 
+                                for record_col, source_col in st.session_state["associations"].items()]
+                try:
+                    output_file = generate_output(
+                        uploaded_source,
+                        associations,
+                        output_format=st.session_state["output_format"]
+                    )
+                    st.session_state["output_file"] = output_file
+                    st.success("File generato con successo!")
+                except Exception as e:
+                    st.error(f"Errore nella generazione del file: {e}")
+            else:
+                st.error("Assicurati di aver caricato i file e definito le associazioni.")
 
         # Download del file generato
         if st.session_state["output_file"]:
