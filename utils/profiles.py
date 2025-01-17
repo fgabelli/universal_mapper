@@ -7,22 +7,29 @@ from utils.database import get_connection
 # Percorso del file JSON di backup (opzionale)
 PROFILES_BACKUP_FILE = os.path.join(os.path.dirname(__file__), "profiles_backup.json")
 
+with get_connection() as conn:
+    cursor = conn.cursor()
+    st.info("DEBUG: Connessione al database riuscita.")
+
+
 # Funzione per ottenere l'ID dell'utente dato l'email
 def get_user_id(email):
     """Restituisce l'ID numerico dell'utente dato l'email."""
     with get_connection() as conn:
         cursor = conn.cursor()
         try:
+            st.info(f"DEBUG: Verifico l'email: {email}")
             cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
             result = cursor.fetchone()
+            st.info(f"DEBUG: Risultato della query per l'email '{email}': {result}")
             if result:
                 st.info(f"DEBUG: Utente trovato con ID {result[0]} per email {email}")
                 return result[0]
             else:
-                st.warning(f"DEBUG: Nessun utente trovato per email {email}. Controlla il database.")
+                st.warning(f"DEBUG: Nessun utente trovato per l'email '{email}'.")
                 return None
         except Exception as e:
-            st.error(f"Errore nella query per ottenere l'ID utente: {e}")
+            st.error(f"Errore durante la query per ottenere l'ID utente: {e}")
             return None
 
 # Funzione per salvare un profilo per un utente specifico nel database
