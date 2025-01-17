@@ -1,10 +1,13 @@
 import os
 import json
 import streamlit as st
-from decouple import config
-from utils.auth import login, register, request_password_reset, reset_password
+from utils.database import initialize_db
+from utils.auth import login, register
 from utils.file_processing import upload_file, preview_file, get_columns, generate_output
-from utils.profiles import load_profile, save_profile, list_profiles, delete_profile, load_all_profiles, save_all_profiles
+from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
+
+# Inizializza il database
+initialize_db()
 
 # Configurazione dell'app - deve essere il PRIMO comando Streamlit
 st.set_page_config(page_title="Universal Mapper", layout="wide")
@@ -74,9 +77,10 @@ if st.session_state["page"] == "login":
         if login(email, password):
             st.session_state["authenticated"] = True
             st.session_state["authenticated_user"] = email
+            st.success("Accesso effettuato!")
             handle_navigation("Caricamento File")
         else:
-            st.error("Credenziali errate.")
+            st.error("Email o password errati.")
 
 elif st.session_state["page"] == "register":
     st.title("Registrazione")
