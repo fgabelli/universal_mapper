@@ -1,6 +1,7 @@
 import os
 import json
 import streamlit as st
+import pandas as pd
 from utils.database import initialize_db, DB_PATH
 from utils.auth import login, register
 from utils.file_processing import upload_file, preview_file, get_columns, generate_output
@@ -20,11 +21,13 @@ from utils.database import DB_PATH
 def debug_check_users():
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users")
+        cursor.execute("SELECT id, email, created_at FROM users")
         users = cursor.fetchall()
-        st.write("Utenti nel database:", users)
-
-debug_check_users()
+        if users:
+            # Converti i dati in un DataFrame per una migliore leggibilità
+            return pd.DataFrame(users, columns=["ID", "Email", "Data di Creazione"])
+        else:
+            return None
 
 # Verifica l'esistenza del database
 if os.path.exists(DB_PATH):
@@ -111,13 +114,19 @@ elif st.session_state["page"] == "register":
             success = register(email, password)
             if success:
                 st.success(f"Registrazione completata per: {email}")
-                # Mostra tutti gli utenti per il debug
-                st.write("Utenti nel database:", debug_check_users())
             else:
                 st.error("Registrazione fallita: L'utente potrebbe già esistere.")
-                st.write("Utenti nel database (debug):", debug_check_users())
+
+            # Mostra tutti gli utenti in formato tabellare
+            users = debug_check_users()
+            if users is not None:
+                st.write("Utenti nel database:")
+                st.dataframe(users)
+            else:
+                st.write("Nessun utente trovato nel database.")
         else:
             st.error("Compila tutti i campi.")
+
 
 elif st.session_state["page"] == "Caricamento File":
     st.title("Caricamento File")
