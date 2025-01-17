@@ -7,11 +7,6 @@ from utils.database import get_connection
 # Percorso del file JSON di backup (opzionale)
 PROFILES_BACKUP_FILE = os.path.join(os.path.dirname(__file__), "profiles_backup.json")
 
-with get_connection() as conn:
-    cursor = conn.cursor()
-    st.info("DEBUG: Connessione al database riuscita.")
-
-
 # Funzione per ottenere l'ID dell'utente dato l'email
 def get_user_id(email):
     """Restituisce l'ID numerico dell'utente dato l'email."""
