@@ -9,16 +9,21 @@ PROFILES_BACKUP_FILE = os.path.join(os.path.dirname(__file__), "profiles_backup.
 
 # Funzione per ottenere l'ID dell'utente dato l'email
 def get_user_id(email):
-    """Restituisce l'ID numerico dell'utente dato l'email, o None se l'utente non esiste."""
+    """Restituisce l'ID numerico dell'utente dato l'email."""
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
-        result = cursor.fetchone()
-        if not result:
-            st.error(f"DEBUG: Nessun utente trovato per l'email: {email}")
+        try:
+            cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+            result = cursor.fetchone()
+            if result:
+                st.info(f"DEBUG: Utente trovato con ID {result[0]} per email {email}")
+                return result[0]
+            else:
+                st.warning(f"DEBUG: Nessun utente trovato per email {email}")
+                return None
+        except Exception as e:
+            st.error(f"Errore nella query per ottenere l'ID utente: {e}")
             return None
-        st.info(f"DEBUG: Utente trovato con ID {result[0]} per email {email}")
-        return result[0]
 
 # Funzione per salvare un profilo per un utente specifico nel database
 def save_profile(user_id, profile_name, associations):
@@ -37,18 +42,20 @@ def save_profile(user_id, profile_name, associations):
 def list_profiles(user_email):
     """Restituisce l'elenco dei profili per un determinato utente."""
     user_id = get_user_id(user_email)
-    if user_id is None:
-        st.error("DEBUG: L'ID utente non è stato trovato.")
-        return []  # Restituisce un elenco vuoto se l'utente non esiste
+    if not user_id:
+        st.warning(f"DEBUG: Nessun profilo caricato perché l'utente con email {user_email} non esiste.")
+        return []
 
-    st.info(f"DEBUG: Tentativo di recupero dei profili per user_id {user_id}")
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name FROM profiles WHERE user_id = %s", (user_id,))
-        profiles = cursor.fetchall()
-        if not profiles:
-            st.warning("DEBUG: Nessun profilo trovato per l'utente.")
-        return profiles if profiles else []
+        try:
+            cursor.execute("SELECT id, name FROM profiles WHERE user_id = %s", (user_id,))
+            profiles = cursor.fetchall()
+            st.info(f"DEBUG: Trovati {len(profiles)} profili per l'utente con ID {user_id}.")
+            return profiles
+        except Exception as e:
+            st.error(f"Errore durante il recupero dei profili: {e}")
+            return []
 
 # Funzione per caricare un profilo specifico
 def load_profile(profile_id):
