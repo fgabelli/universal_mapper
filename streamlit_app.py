@@ -81,7 +81,7 @@ elif st.session_state["page"] == "register":
     st.title("Registrazione")
     email = st.text_input("Email", key="register_email")
     password = st.text_input("Password", type="password", key="register_password")
-    if st.button("Registrati"):
+    if st.button("Registrati", key="register_button"):
         if register(email, password):
             st.success("Registrazione completata! Torna al login per accedere.")
             navigate_to("login")
