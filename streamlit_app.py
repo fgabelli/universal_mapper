@@ -10,6 +10,14 @@ from utils.profiles import load_profile, save_profile, list_profiles, delete_pro
 # Configurazione dell'app - deve essere il PRIMO comando Streamlit
 st.set_page_config(page_title="Universal Mapper", layout="wide")
 
+# Funzione per ottenere l'ID dell'utente basato sull'email
+def get_user_id(email):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+        user = cursor.fetchone()
+        return user[0] if user else None
+
 # Inizializza il database
 initialize_db()
 
@@ -155,19 +163,20 @@ elif st.session_state["page"] == "Caricamento File":
 
         st.session_state["associations"] = associations
 
-        # Salvataggio di un nuovo profilo
-        profile_name = st.text_input("Nome del profilo:")
-        if st.button("Salva Profilo"):
-            save_profile(
-                user_id=st.session_state["authenticated_user"],
-                profile_name=profile_name,
-                associations=associations
-            )
-            st.success(f"Profilo '{profile_name}' salvato!")
+# Salvataggio di un nuovo profilo
+profile_name = st.text_input("Nome del profilo:")
+if st.button("Salva Profilo"):
+    user_id = get_user_id(st.session_state["authenticated_user"])
+    if user_id:
+        save_profile(
+            user_id=user_id,
+            profile_name=profile_name,
+            associations=st.session_state["associations"]
+        )
+        st.success(f"Profilo '{profile_name}' salvato!")
+    else:
+        st.error("Errore: Utente non trovato!")
 
-        # Scelta del formato di output
-        st.subheader("Formato di Output")
-        output_format = st.selectbox("Seleziona il formato del file generato:", ["CSV", "XLS", "XLSX"], key="output_format")
 
         # Generazione del file di output
         if st.button("Genera File"):
