@@ -129,6 +129,24 @@ elif st.session_state["page"] == "Caricamento File":
         st.subheader("Anteprima file tracciato record:")
         preview_file(uploaded_record)
 
+        # Associa le colonne
+        source_columns = get_columns(uploaded_source)
+        record_columns = get_columns(uploaded_record)
+
+        st.subheader("Associazione delle colonne:")
+        associations = {}
+        for record_col in record_columns:
+            associations[record_col] = st.selectbox(
+                f"Associa una colonna per '{record_col}':",
+                options=["-- Nessuna --"] + source_columns,
+                key=f"assoc_{record_col}",
+            )
+
+        # Mostra il risultato delle associazioni
+        if st.button("Salva Associazioni"):
+            st.session_state["associations"] = associations
+            st.success("Associazioni salvate!")
+
 elif st.session_state["page"] == "Gestione Profili":
     st.title("Gestione Profili")
     if st.session_state["authenticated_user"]:
