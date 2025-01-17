@@ -15,7 +15,6 @@ def get_user_id(email):
         cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
         result = cursor.fetchone()
         if not result:
-            # Gestione del caso in cui l'utente non è trovato
             st.error(f"Nessun utente trovato per l'email: {email}")
             return None
         return result[0]
@@ -38,13 +37,13 @@ def list_profiles(user_email):
     """Restituisce l'elenco dei profili per un determinato utente."""
     user_id = get_user_id(user_email)
     if user_id is None:
-        # Se l'utente non esiste, restituisce un elenco vuoto
-        return []
+        return []  # Restituisce un elenco vuoto se l'utente non esiste
 
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id, name FROM profiles WHERE user_id = %s", (user_id,))
-        return cursor.fetchall()
+        profiles = cursor.fetchall()
+        return profiles if profiles else []
 
 # Funzione per caricare un profilo specifico
 def load_profile(profile_id):
