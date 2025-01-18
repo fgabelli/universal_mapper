@@ -28,14 +28,11 @@ def get_user_id(email):
 
 # Funzione per salvare un profilo per un utente specifico nel database
 def save_profile(user_id, profile_name, associations):
+    st.info(f"DEBUG: Salvataggio profilo - user_id: {user_id}, profile_name: {profile_name}")
+    st.info(f"DEBUG: Associazioni: {json.dumps(associations)}")
     with get_connection() as conn:
         cursor = conn.cursor()
         try:
-            # Debug: verifica i dati passati
-            st.info(f"DEBUG: Salvataggio profilo per user_id={user_id}, name={profile_name}")
-            st.info(f"DEBUG: Associazioni: {json.dumps(associations)}")
-
-            # Query di inserimento
             cursor.execute(
                 "INSERT INTO profiles (user_id, name, data) VALUES (%s, %s, %s)",
                 (user_id, profile_name, json.dumps(associations))
