@@ -1,17 +1,20 @@
 import psycopg2
 import hashlib
+import os
 
-# Stringa di connessione al database di Supabase
-DB_URL = "postgresql://postgres:Frabicom%2C2010@db.tgnezgsfcrzsjleokswu.supabase.co:5432/postgres"
+# Ottieni la stringa di connessione al database dai secrets o dalle variabili di ambiente
+DB_URL = os.getenv("DB_URL")
 
 # Funzione per generare l'hash
 def hash_password(password):
     """Genera un hash SHA-256 per la password."""
     return hashlib.sha256(password.encode()).hexdigest()
 
-# Dati dell'utente
-email = "f.gabelli@gmail.com"
-password = "Sup3ech80"
+# Richiedi i dati dell'utente in modo interattivo
+email = input("Inserisci l'email dell'utente: ")
+password = input("Inserisci la nuova password: ")
+
+# Genera l'hash della password
 hashed_password = hash_password(password)
 
 # Aggiorna la password nel database
