@@ -9,22 +9,21 @@ PROFILES_BACKUP_FILE = os.path.join(os.path.dirname(__file__), "profiles_backup.
 
 # Funzione per ottenere l'ID dell'utente dato l'email
 def get_user_id(email):
-    """Restituisce l'ID numerico dell'utente dato l'email."""
     with get_connection() as conn:
         cursor = conn.cursor()
         try:
-            st.info(f"DEBUG: Verifico l'email: {email}")
             cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
             result = cursor.fetchone()
-            st.info(f"DEBUG: Risultato della query per l'email '{email}': {result}")
+
+            # Debug: verifica il risultato della query
             if result:
                 st.info(f"DEBUG: Utente trovato con ID {result[0]} per email {email}")
-                return result[0]
             else:
-                st.warning(f"DEBUG: Nessun utente trovato per l'email '{email}'.")
-                return None
+                st.warning(f"DEBUG: Nessun utente trovato con email {email}")
+
+            return result[0] if result else None
         except Exception as e:
-            st.error(f"Errore durante la query per ottenere l'ID utente: {e}")
+            st.error(f"Errore nella query per ottenere l'ID utente: {e}")
             return None
 
 # Funzione per salvare un profilo per un utente specifico nel database
@@ -32,11 +31,17 @@ def save_profile(user_id, profile_name, associations):
     with get_connection() as conn:
         cursor = conn.cursor()
         try:
+            # Debug: verifica i dati passati
+            st.info(f"DEBUG: Salvataggio profilo per user_id={user_id}, name={profile_name}")
+            st.info(f"DEBUG: Associazioni: {json.dumps(associations)}")
+
+            # Query di inserimento
             cursor.execute(
                 "INSERT INTO profiles (user_id, name, data) VALUES (%s, %s, %s)",
                 (user_id, profile_name, json.dumps(associations))
             )
             conn.commit()
+            st.success(f"Profilo '{profile_name}' salvato con successo!")
         except Exception as e:
             st.error(f"Errore nel salvataggio del profilo: {e}")
 
