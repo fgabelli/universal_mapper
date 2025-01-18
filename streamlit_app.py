@@ -27,7 +27,7 @@ def show_header():
     logo_path = os.path.join(os.path.dirname(__file__), "logo", "logo_web.png")
     try:
         with col1:
-            st.image(logo_path, width=80)  # Carica il logo
+            st.image(logo_path, width=80)
         with col2:
             st.markdown(
                 """
@@ -39,7 +39,7 @@ def show_header():
                 """,
                 unsafe_allow_html=True,
             )
-    except Exception as e:
+    except Exception:
         st.error("Errore nel caricamento del logo")
 
 # Mostra l'intestazione nella parte superiore di ogni pagina
@@ -142,8 +142,8 @@ elif st.session_state["page"] == "Caricamento File":
                     st.success(f"Profilo '{profile_name}' salvato!")
                 else:
                     st.error("Errore: Utente non trovato!")
-            except Exception:
-                st.error("Errore durante il salvataggio del profilo.")
+            except Exception as e:
+                st.error(f"Errore durante il salvataggio del profilo: {e}")
 
         output_format = st.selectbox("Seleziona il formato del file generato:", ["CSV", "XLS", "XLSX"])
         if st.button("Genera File"):
@@ -155,8 +155,8 @@ elif st.session_state["page"] == "Caricamento File":
                 )
                 st.session_state["output_file"] = output_file
                 st.success("File generato con successo!")
-            except Exception:
-                st.error("Errore durante la generazione del file.")
+            except Exception as e:
+                st.error(f"Errore durante la generazione del file: {e}")
 
         if st.session_state["output_file"]:
             with open(st.session_state["output_file"], "rb") as file:
@@ -213,11 +213,6 @@ elif st.session_state["page"] == "Manuale":
 
         5. **Gestione Profili**:
            - Visualizza ed elimina i profili salvati.
-
-        #### **Funzionalità aggiuntive:**
-
-        - **Reset Password**: Reimposta la password in caso di smarrimento.
-        - **Impostazioni Account**: Modifica la password o gestisci i dettagli dell'account.
 
         #### **Supporto:**
 
