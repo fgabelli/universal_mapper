@@ -9,52 +9,48 @@ PROFILES_BACKUP_FILE = os.path.join(os.path.dirname(__file__), "profiles_backup.
 
 # Funzione per ottenere l'ID dell'utente dato l'email
 def get_user_id(email):
+    """Ottiene l'ID dell'utente dato l'email."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
-            result = cursor.fetchone()
-            if not result:
-                st.error(f"DEBUG: Utente non trovato per email: {email}")
-                return None
-            return result[0]
-    except Exception as e:
-        st.error(f"Errore nella query per ottenere l'ID utente: {e}")
+            user = cursor.fetchone()
+            return user[0] if user else None
+    except sqlite3.Error as e:
+        st.error(f"Errore durante il recupero dell'ID utente: {e}")
         return None
 
 # Funzione per salvare un profilo per un utente specifico nel database
 def save_profile(user_id, profile_name, associations):
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        try:
+    """Salva un profilo nel database SQLite."""
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
             cursor.execute(
                 "INSERT INTO profiles (user_id, name, data) VALUES (?, ?, ?)",
                 (user_id, profile_name, json.dumps(associations))
             )
             conn.commit()
             st.success(f"Profilo '{profile_name}' salvato con successo!")
-        except sqlite3.IntegrityError:
-            st.error(f"Errore: Nome del profilo '{profile_name}' già esistente.")
-        except Exception as e:
-            st.error(f"Errore nel salvataggio del profilo: {e}")
-
+    except sqlite3.Error as e:
+        st.error(f"Errore durante il salvataggio del profilo: {e}")
 # Funzione per caricare tutti i profili per un utente specifico
 def list_profiles(user_email):
     """Restituisce l'elenco dei profili per un determinato utente."""
     user_id = get_user_id(user_email)
     if not user_id:
-        st.warning(f"Nessun profilo caricato perché l'utente con email {user_email} non esiste.")
+        st.warning("Nessun utente trovato.")
         return []
 
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        try:
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
             cursor.execute("SELECT id, name FROM profiles WHERE user_id = ?", (user_id,))
             profiles = cursor.fetchall()
             return profiles
-        except Exception as e:
-            st.error(f"Errore durante il recupero dei profili: {e}")
-            return []
+    except sqlite3.Error as e:
+        st.error(f"Errore durante il recupero dei profili: {e}")
+        return []
 
 # Funzione per caricare un profilo specifico
 def load_profile(profile_id):
