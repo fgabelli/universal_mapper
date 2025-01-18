@@ -9,22 +9,19 @@ PROFILES_BACKUP_FILE = os.path.join(os.path.dirname(__file__), "profiles_backup.
 
 # Funzione per ottenere l'ID dell'utente dato l'email
 def get_user_id(email):
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        try:
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
             cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
             result = cursor.fetchone()
-
-            # Debug: verifica il risultato della query
-            if result:
-                st.info(f"DEBUG: Utente trovato con ID {result[0]} per email {email}")
-            else:
-                st.warning(f"DEBUG: Nessun utente trovato con email {email}")
-
-            return result[0] if result else None
-        except Exception as e:
-            st.error(f"Errore nella query per ottenere l'ID utente: {e}")
-            return None
+            if not result:
+                st.error(f"DEBUG: Utente non trovato per email: {email}")
+                return None
+            st.info(f"DEBUG: Utente trovato con ID {result[0]} per email {email}")
+            return result[0]
+    except Exception as e:
+        st.error(f"Errore nella query per ottenere l'ID utente: {e}")
+        return None
 
 # Funzione per salvare un profilo per un utente specifico nel database
 def save_profile(user_id, profile_name, associations):
