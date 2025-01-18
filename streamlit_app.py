@@ -7,27 +7,10 @@ from utils.auth import login, register
 from utils.file_processing import upload_file, preview_file, get_columns, generate_output
 from utils.profiles import load_profile, save_profile, list_profiles, delete_profile
 
-# Configurazione dell'app - deve essere il PRIMO comando Streamlit
 st.set_page_config(page_title="Universal Mapper", layout="wide")
 
-# Inizializza il database
 initialize_db()
 
-# Funzione di connessione al database per debug
-import psycopg2
-
-def debug_check_users():
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, email, created_at FROM users")
-        users = cursor.fetchall()
-        if users:
-            # Converti i dati in un DataFrame per una migliore leggibilità
-            return pd.DataFrame(users, columns=["ID", "Email", "Data di Creazione"])
-        else:
-            return None
-
-# Funzione per ottenere l'ID dell'utente basato sull'email
 def get_user_id(email):
     with get_connection() as conn:
         cursor = conn.cursor()
@@ -35,13 +18,12 @@ def get_user_id(email):
         user = cursor.fetchone()
         return user[0] if user else None
 
-# Funzione per mostrare l'intestazione con logo e nome app
 def show_header():
     col1, col2 = st.columns([1, 5])
     logo_path = os.path.join(os.path.dirname(__file__), "logo", "logo_web.png")
     try:
         with col1:
-            st.image(logo_path, width=80)  # Carica il logo
+            st.image(logo_path, width=80)
         with col2:
             st.markdown(
                 """
@@ -53,13 +35,11 @@ def show_header():
                 """,
                 unsafe_allow_html=True,
             )
-    except Exception as e:
-        st.error(f"Errore nel caricamento del logo: {e}")
+    except Exception:
+        pass
 
-# Mostra l'intestazione nella parte superiore di ogni pagina
 show_header()
 
-# Inizializza lo stato
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 if "authenticated_user" not in st.session_state:
@@ -71,7 +51,6 @@ if "associations" not in st.session_state:
 if "output_file" not in st.session_state:
     st.session_state["output_file"] = None
 
-# Sidebar per la navigazione
 with st.sidebar:
     if st.session_state["authenticated"]:
         st.title("Navigazione")
@@ -86,12 +65,6 @@ with st.sidebar:
         if st.button("Vai alla Registrazione", key="goto_register_button_sidebar"):
             st.session_state["page"] = "register"
 
-# Funzione di gestione delle pagine
-def handle_navigation(page_name):
-    """Cambia la pagina attiva."""
-    st.session_state["page"] = page_name
-
-# Gestione delle pagine principali
 if st.session_state["page"] == "login":
     st.title("Login")
     email = st.text_input("Email", key="login_email")
@@ -101,7 +74,7 @@ if st.session_state["page"] == "login":
             st.session_state["authenticated"] = True
             st.session_state["authenticated_user"] = email
             st.success("Accesso effettuato!")
-            handle_navigation("Caricamento File")
+            st.session_state["page"] = "Caricamento File"
         else:
             st.error("Email o password errati.")
 
@@ -116,14 +89,6 @@ elif st.session_state["page"] == "register":
                 st.success(f"Registrazione completata per: {email}")
             else:
                 st.error("Registrazione fallita: L'utente potrebbe già esistere.")
-
-            # Mostra tutti gli utenti in formato tabellare
-            users = debug_check_users()
-            if users is not None:
-                st.write("Utenti nel database:")
-                st.dataframe(users)
-            else:
-                st.write("Nessun utente trovato nel database.")
         else:
             st.error("Compila tutti i campi.")
 
@@ -139,7 +104,6 @@ elif st.session_state["page"] == "Caricamento File":
         st.subheader("Anteprima file tracciato record:")
         preview_file(uploaded_record)
 
-        # Caricamento di un profilo salvato
         profiles = list_profiles(st.session_state["authenticated_user"])
         if profiles:
             selected_profile = st.selectbox("Seleziona un profilo salvato", [p[1] for p in profiles])
@@ -148,7 +112,6 @@ elif st.session_state["page"] == "Caricamento File":
                 st.session_state["associations"] = profile_data
                 st.success(f"Profilo '{selected_profile}' caricato!")
 
-        # Associa le colonne
         source_columns = get_columns(uploaded_source)
         record_columns = get_columns(uploaded_record)
 
@@ -163,16 +126,11 @@ elif st.session_state["page"] == "Caricamento File":
 
         st.session_state["associations"] = associations
 
-if st.session_state["authenticated"]:
-    # Salvataggio di un nuovo profilo
     profile_name = st.text_input("Nome del profilo:")
     if st.button("Salva Profilo"):
         try:
             with get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT 1;")
-                st.success("Connessione al database riuscita per `profiles`.")
-
                 user_id = get_user_id(st.session_state["authenticated_user"])
                 if user_id:
                     save_profile(
@@ -185,61 +143,37 @@ if st.session_state["authenticated"]:
                     st.error("Errore: Utente non trovato!")
         except Exception as e:
             st.error(f"Errore nella connessione o salvataggio del profilo: {e}")
-else:
-    st.warning("Devi essere autenticato per salvare un profilo.")
 
-    
-    # Recupero dell'ID dell'utente
-    user_id = get_user_id(st.session_state["authenticated_user"])
-    if user_id:
-        save_profile(
-            user_id=user_id,
-            profile_name=profile_name,
-            associations=associations
-        )
-        st.success(f"Profilo '{profile_name}' salvato!")
-    else:
-        st.error("Errore: Utente non trovato!")
-        # Scelta del formato di output
-        st.subheader("Formato di Output")
-        output_format = st.selectbox("Seleziona il formato del file generato:", ["CSV", "XLS", "XLSX"], key="output_format")
+    output_format = st.selectbox("Seleziona il formato del file generato:", ["CSV", "XLS", "XLSX"], key="output_format")
 
-        # Generazione del file di output
-        if st.button("Genera File"):
-            if uploaded_source and st.session_state["associations"]:
-                # Converti le associazioni in una lista di dizionari
-                associations = [{"record": record_col, "source": source_col} 
-                                for record_col, source_col in st.session_state["associations"].items()]
-                try:
-                    output_file = generate_output(
-                        uploaded_source,
-                        associations,
-                        output_format=st.session_state["output_format"]
-                    )
-                    st.session_state["output_file"] = output_file
-                    st.success("File generato con successo!")
-                except Exception as e:
-                    st.error(f"Errore nella generazione del file: {e}")
-            else:
-                st.error("Assicurati di aver caricato i file e definito le associazioni.")
-
-        # Download del file generato
-        if st.session_state["output_file"]:
-            with open(st.session_state["output_file"], "rb") as file:
-                st.download_button(
-                    label="Scarica il file generato",
-                    data=file,
-                    file_name=f"output.{output_format.lower()}",
-                    mime="text/csv" if output_format == "CSV" else "application/vnd.ms-excel"
+    if st.button("Genera File"):
+        if uploaded_source and st.session_state["associations"]:
+            associations = [{"record": record_col, "source": source_col} 
+                            for record_col, source_col in st.session_state["associations"].items()]
+            try:
+                output_file = generate_output(
+                    uploaded_source,
+                    associations,
+                    output_format=st.session_state["output_format"]
                 )
+                st.session_state["output_file"] = output_file
+                st.success("File generato con successo!")
+            except Exception as e:
+                st.error(f"Errore nella generazione del file: {e}")
+        else:
+            st.error("Assicurati di aver caricato i file e definito le associazioni.")
+
+    if st.session_state["output_file"]:
+        with open(st.session_state["output_file"], "rb") as file:
+            st.download_button(
+                label="Scarica il file generato",
+                data=file,
+                file_name=f"output.{output_format.lower()}",
+                mime="text/csv" if output_format == "CSV" else "application/vnd.ms-excel"
+            )
 
 elif st.session_state["page"] == "Gestione Profili":
     st.title("Gestione Profili")
-# Verifica se l'utente è autenticato
-    if "authenticated_user" in st.session_state:
-        st.info(f"DEBUG: Utente autenticato: {st.session_state['authenticated_user']}")
-    else:
-        st.error("DEBUG: Nessun utente autenticato.")
     if st.session_state["authenticated_user"]:
         profiles = list_profiles(st.session_state["authenticated_user"])
         if profiles:
