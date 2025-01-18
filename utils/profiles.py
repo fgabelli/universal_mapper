@@ -1,6 +1,6 @@
 import json
 import os
-import psycopg2
+import sqlite3
 import streamlit as st
 from utils.database import get_connection
 
@@ -12,12 +12,11 @@ def get_user_id(email):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+            cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
             result = cursor.fetchone()
             if not result:
                 st.error(f"DEBUG: Utente non trovato per email: {email}")
                 return None
-            st.info(f"DEBUG: Utente trovato con ID {result[0]} per email {email}")
             return result[0]
     except Exception as e:
         st.error(f"Errore nella query per ottenere l'ID utente: {e}")
@@ -25,17 +24,17 @@ def get_user_id(email):
 
 # Funzione per salvare un profilo per un utente specifico nel database
 def save_profile(user_id, profile_name, associations):
-    st.info(f"DEBUG: Salvataggio profilo - user_id: {user_id}, profile_name: {profile_name}")
-    st.info(f"DEBUG: Associazioni: {json.dumps(associations)}")
     with get_connection() as conn:
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "INSERT INTO profiles (user_id, name, data) VALUES (%s, %s, %s)",
+                "INSERT INTO profiles (user_id, name, data) VALUES (?, ?, ?)",
                 (user_id, profile_name, json.dumps(associations))
             )
             conn.commit()
             st.success(f"Profilo '{profile_name}' salvato con successo!")
+        except sqlite3.IntegrityError:
+            st.error(f"Errore: Nome del profilo '{profile_name}' già esistente.")
         except Exception as e:
             st.error(f"Errore nel salvataggio del profilo: {e}")
 
@@ -44,15 +43,14 @@ def list_profiles(user_email):
     """Restituisce l'elenco dei profili per un determinato utente."""
     user_id = get_user_id(user_email)
     if not user_id:
-        st.warning(f"DEBUG: Nessun profilo caricato perché l'utente con email {user_email} non esiste.")
+        st.warning(f"Nessun profilo caricato perché l'utente con email {user_email} non esiste.")
         return []
 
     with get_connection() as conn:
         cursor = conn.cursor()
         try:
-            cursor.execute("SELECT id, name FROM profiles WHERE user_id = %s", (user_id,))
+            cursor.execute("SELECT id, name FROM profiles WHERE user_id = ?", (user_id,))
             profiles = cursor.fetchall()
-            st.info(f"DEBUG: Trovati {len(profiles)} profili per l'utente con ID {user_id}.")
             return profiles
         except Exception as e:
             st.error(f"Errore durante il recupero dei profili: {e}")
@@ -63,7 +61,7 @@ def load_profile(profile_id):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT data FROM profiles WHERE id = %s", (profile_id,))
+            cursor.execute("SELECT data FROM profiles WHERE id = ?", (profile_id,))
             result = cursor.fetchone()
             return json.loads(result[0]) if result else None
     except Exception as e:
@@ -74,8 +72,9 @@ def delete_profile(profile_id):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM profiles WHERE id = %s", (profile_id,))
+            cursor.execute("DELETE FROM profiles WHERE id = ?", (profile_id,))
             conn.commit()
+            st.success(f"Profilo con ID {profile_id} eliminato con successo!")
     except Exception as e:
         raise ValueError(f"Errore durante l'eliminazione del profilo: {e}")
 
@@ -95,12 +94,14 @@ def backup_profiles():
 
         with open(PROFILES_BACKUP_FILE, "w") as file:
             json.dump(backup, file, indent=4)
+        st.success("Backup completato con successo!")
     except Exception as e:
         raise ValueError(f"Errore durante il backup dei profili: {e}")
 
 # Funzione di ripristino: carica i profili da un file JSON nel database (opzionale)
 def restore_profiles():
     if not os.path.exists(PROFILES_BACKUP_FILE):
+        st.warning("File di backup non trovato.")
         return
 
     try:
@@ -112,9 +113,10 @@ def restore_profiles():
             for user_id, profiles in backup.items():
                 for name, data in profiles.items():
                     cursor.execute(
-                        "INSERT INTO profiles (user_id, name, data) VALUES (%s, %s, %s)",
+                        "INSERT INTO profiles (user_id, name, data) VALUES (?, ?, ?)",
                         (user_id, name, json.dumps(data))
                     )
             conn.commit()
+        st.success("Ripristino completato con successo!")
     except Exception as e:
         raise ValueError(f"Errore durante il ripristino dei profili: {e}")

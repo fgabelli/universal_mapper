@@ -1,22 +1,23 @@
 import os
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import sqlite3
 
-# URL del database PostgreSQL
-DB_URL = os.getenv("DB_URL")  # Legge la stringa di connessione dalle secrets
+# Percorso del database SQLite
+DATABASE_PATH = "universal_mapper.db"
 
 # Connessione al database
 def get_connection():
-    return psycopg2.connect(DB_URL, cursor_factory=RealDictCursor)
+    """Crea una connessione al database SQLite."""
+    return sqlite3.connect(DATABASE_PATH)
 
 # Creazione delle tabelle
 def initialize_db():
+    """Inizializza il database e crea le tabelle necessarie."""
     with get_connection() as conn:
         cursor = conn.cursor()
         # Tabella utenti
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -25,7 +26,7 @@ def initialize_db():
         # Tabella profili
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS profiles (
-            id SERIAL PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             name TEXT NOT NULL,
             data TEXT NOT NULL,
@@ -37,24 +38,26 @@ def initialize_db():
 
 # Funzione per registrare un utente
 def register(email, password):
+    """Registra un nuovo utente nel database."""
     with get_connection() as conn:
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "INSERT INTO users (email, password) VALUES (%s, %s)", 
+                "INSERT INTO users (email, password) VALUES (?, ?)", 
                 (email, password)
             )
             conn.commit()  # Salva i dati nel database
             return True
-        except psycopg2.IntegrityError:
+        except sqlite3.IntegrityError:
             return False  # L'email è già registrata
 
 # Funzione per autenticare un utente
 def login(email, password):
+    """Autentica un utente con email e password."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT * FROM users WHERE email = %s AND password = %s", 
+            "SELECT * FROM users WHERE email = ? AND password = ?", 
             (email, password)
         )
         user = cursor.fetchone()
@@ -62,11 +65,12 @@ def login(email, password):
 
 # Funzione di debug per verificare gli utenti nel database
 def debug_check_users():
+    """Restituisce tutti gli utenti registrati nel database."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id, email, created_at FROM users")
         users = cursor.fetchall()
         return users
 
-# Inizializza il database
+# Inizializza il database all'avvio del modulo
 initialize_db()
