@@ -1,21 +1,22 @@
-import sqlite3
 import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
-# Percorso del file del database SQLite
-DB_PATH = os.path.join(os.path.dirname(__file__), "database.sqlite")
+# Legge la stringa di connessione dalle variabili d'ambiente
+DB_URL = os.getenv("DB_URL")
 
-# Connessione al database SQLite
 def get_connection():
-    return sqlite3.connect(DB_PATH)
+    if not DB_URL:
+        raise EnvironmentError("La variabile d'ambiente 'DB_URL' non è configurata.")
+    return psycopg2.connect(DB_URL, cursor_factory=RealDictCursor)
 
-# Inizializza il database
 def initialize_db():
     with get_connection() as conn:
         cursor = conn.cursor()
         # Tabella utenti
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -24,7 +25,7 @@ def initialize_db():
         # Tabella profili
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS profiles (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             name TEXT NOT NULL,
             data TEXT NOT NULL,
