@@ -166,13 +166,24 @@ elif st.session_state["page"] == "Caricamento File":
 # Salvataggio di un nuovo profilo
 profile_name = st.text_input("Nome del profilo:")
 if st.button("Salva Profilo"):
-        try:
+    try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT 1 FROM profiles LIMIT 1;")
-            st.success("Connessione alla tabella `profiles` riuscita.")
+            cursor.execute("SELECT 1;")
+            st.success("Connessione al database riuscita per `profiles`.")
+            
+            user_id = get_user_id(st.session_state["authenticated_user"])
+            if user_id:
+                save_profile(
+                    user_id=user_id,
+                    profile_name=profile_name,
+                    associations=associations
+                )
+                st.success(f"Profilo '{profile_name}' salvato!")
+            else:
+                st.error("Errore: Utente non trovato!")
     except Exception as e:
-        st.error(f"Errore nella connessione alla tabella `profiles`: {e}")
+        st.error(f"Errore nella connessione o salvataggio del profilo: {e}")
 
     
     # Recupero dell'ID dell'utente
