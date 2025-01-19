@@ -112,7 +112,6 @@ elif st.session_state["page"] == "Caricamento File":
         uploaded_source = upload_file("Carica file sorgente (CSV/XLS/XLSX):")
         uploaded_record = upload_file("Carica file tracciato record (CSV/XLS/XLSX):")
 
-        # Aggiunta del blocco per la gestione dei profili salvati
         if uploaded_source and uploaded_record:
             st.subheader("Anteprima file sorgente:")
             preview_file(uploaded_source)
@@ -120,11 +119,9 @@ elif st.session_state["page"] == "Caricamento File":
             preview_file(uploaded_record)
 
             if st.session_state["authenticated_user"]:
-                st.info(f"Utente autenticato: {st.session_state['authenticated_user']}")
                 try:
                     profiles = list_profiles(st.session_state["authenticated_user"])
                     if profiles:
-                        st.write(f"Profili trovati: {profiles}")
                         selected_profile = st.selectbox(
                             "Seleziona un profilo salvato:", [p[1] for p in profiles]
                         )
@@ -136,10 +133,7 @@ elif st.session_state["page"] == "Caricamento File":
                         st.warning("Non ci sono profili salvati.")
                 except ValueError as e:
                     st.error(f"Errore: {e}")
-            else:
-                st.error("Nessun utente autenticato.")
 
-            # Associazione colonne
             source_columns = get_columns(uploaded_source)
             record_columns = get_columns(uploaded_record)
             associations = {}
@@ -151,55 +145,31 @@ elif st.session_state["page"] == "Caricamento File":
                 )
             st.session_state["associations"] = associations
 
-            # Salva profilo
             profile_name = st.text_input("Nome del profilo:")
             if st.button("Salva Profilo"):
                 try:
                     user_id = get_user_id(st.session_state["authenticated_user"])
-                    if user_id:
-                        save_profile(user_id, profile_name, st.session_state["associations"])
-                        st.success(f"Profilo '{profile_name}' salvato!")
-                    else:
-                        st.error("Errore: Utente non trovato!")
+                    save_profile(user_id, profile_name, st.session_state["associations"])
+                    st.success(f"Profilo '{profile_name}' salvato!")
                 except Exception as e:
                     st.error(f"Errore durante il salvataggio del profilo: {e}")
 
-            # Genera file di output
-            output_format = st.selectbox("Seleziona il formato del file generato:", ["CSV", "XLS", "XLSX"])
-            if st.button("Genera File"):
-                try:
-                    output_file = generate_output(
-                        uploaded_source,
-                        st.session_state["associations"],
-                        output_format
-                    )
-                    st.session_state["output_file"] = output_file
-                    st.success("File generato con successo!")
-                except Exception as e:
-                    st.error(f"Errore durante la generazione del file: {e}")
-
-            # Scarica il file generato
-            if st.session_state["output_file"]:
-                with open(st.session_state["output_file"], "rb") as file:
-                    st.download_button(
-                        label="Scarica il file generato",
-                        data=file,
-                        file_name=f"output.{output_format.lower()}",
-                        mime="text/csv" if output_format == "CSV" else "application/vnd.ms-excel"
-                    )
     else:
         st.warning("Devi essere autenticato per accedere a questa pagina.")
 
 elif st.session_state["page"] == "Gestione Profili":
     st.title("Gestione Profili")
-    profiles = list_profiles(st.session_state["authenticated_user"])
-    if profiles:
-        selected_profile = st.selectbox("Seleziona un profilo salvato", [p[1] for p in profiles])
-        if st.button("Elimina Profilo"):
-            delete_profile(selected_profile, st.session_state["authenticated_user"])
-            st.success(f"Profilo '{selected_profile}' eliminato!")
-    else:
-        st.warning("Non ci sono profili salvati.")
+    try:
+        profiles = list_profiles(st.session_state["authenticated_user"])
+        if profiles:
+            selected_profile = st.selectbox("Seleziona un profilo salvato", [p[1] for p in profiles])
+            if st.button("Elimina Profilo"):
+                delete_profile(selected_profile)
+                st.success(f"Profilo '{selected_profile}' eliminato!")
+        else:
+            st.warning("Non ci sono profili salvati.")
+    except Exception as e:
+        st.error(f"Errore durante il recupero dei profili: {e}")
 
 elif st.session_state["page"] == "Account":
     st.title("Impostazioni Account")
@@ -210,40 +180,43 @@ elif st.session_state["page"] == "Account":
 
 elif st.session_state["page"] == "Manuale":
     st.title("Manuale Utente")
-       # Corretto utilizzo dei doppi apici per evitare errori
-st.markdown(
-    """
-    ### Benvenuto nel Manuale Utente di Universal Mapper
+    st.markdown(
+        """
+        ### Benvenuto nel Manuale Utente di Universal Mapper
 
-    Questa applicazione ti consente di caricare file sorgente e tracciati record, associare colonne, generare file di output e gestire profili personalizzati.
+        Questa applicazione ti consente di caricare file sorgente e tracciati record, associare colonne, generare file di output e gestire profili personalizzati.
 
-    #### **Come utilizzare l'app:**
+        #### **Come utilizzare l'app:**
 
-    1. **Login o Registrazione**:
-       - Accedi utilizzando il tuo username e password.
-       - Se non hai un account, utilizza il pulsante di registrazione per crearne uno.
+        1. **Login o Registrazione**:
+           - Accedi utilizzando il tuo username e password.
+           - Se non hai un account, utilizza il pulsante di registrazione per crearne uno.
 
-    2. **Caricamento File**:
-       - Carica il file sorgente (CSV, XLS, XLSX) e il tracciato record.
-       - Visualizza un'anteprima dei file caricati per verificarne il contenuto.
+        2. **Caricamento File**:
+           - Carica il file sorgente (CSV, XLS, XLSX) e il tracciato record.
+           - Visualizza un'anteprima dei file caricati per verificarne il contenuto.
 
-    3. **Associazione Colonne**:
-       - Associa le colonne del file sorgente a quelle del tracciato record.
-       - Puoi caricare o salvare un profilo per semplificare il processo in futuro.
+        3. **Associazione Colonne**:
+           - Associa le colonne del file sorgente a quelle del tracciato record.
+           - Puoi caricare o salvare un profilo per semplificare il processo in futuro.
 
-    4. **Generazione File di Output**:
-       - Scegli il formato di output desiderato (CSV, XLS, XLSX).
-       - Genera e scarica il file di output.
+        4. **Generazione File di Output**:
+           - Scegli il formato di output desiderato (CSV, XLS, XLSX).
+           - Genera e scarica il file di output.
 
-    5. **Gestione Profili**:
-       - Visualizza ed elimina i profili salvati.
+        5. **Gestione Profili**:
+           - Visualizza ed elimina i profili salvati.
 
-    #### **Supporto:**
+        #### **Supporto:**
 
-    Per ulteriori informazioni o problemi tecnici, contatta il supporto tecnico.
+        Per ulteriori informazioni o problemi tecnici, contatta il supporto tecnico.
 
-    **Email:** supporto@revan.it  
-    **Telefono:** +39 0245076239
-    """
-)
+        **Email:** supporto@revan.it  
+        **Telefono:** +39 0245076239
+        """
+    )
 
+elif st.session_state["page"] == "Logout":
+    st.session_state["authenticated"] = False
+    st.session_state["page"] = "login"
+    st.success("Disconnesso con successo!")
