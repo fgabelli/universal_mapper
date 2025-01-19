@@ -210,7 +210,6 @@ elif st.session_state["page"] == "Account":
 
 elif st.session_state["page"] == "Manuale":
     st.title("Manuale Utente")
-    st.markdown(
        # Corretto utilizzo dei doppi apici per evitare errori
 st.markdown(
     """
