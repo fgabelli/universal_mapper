@@ -1,41 +1,53 @@
 import json
-import os
 import sqlite3
-from utils.database import get_connection
+import os
 
-# Percorso del file JSON di backup (opzionale)
-PROFILES_BACKUP_FILE = os.path.join(os.path.dirname(__file__), "profiles_backup.json")
+# Percorso del database SQLite
+DB_PATH = os.getenv("DB_PATH", "universal_mapper.db")
+
+def get_connection():
+    """Ritorna una connessione al database SQLite."""
+    return sqlite3.connect(DB_PATH)
 
 # Funzione per ottenere l'ID dell'utente dato l'email
 def get_user_id(email):
+    """Restituisce l'ID dell'utente dato l'email."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
-            result = cursor.fetchone()
-            if not result:
+            user = cursor.fetchone()
+            if not user:
                 raise ValueError(f"Utente non trovato per email: {email}")
-            return result[0]
+            return user[0]
     except Exception as e:
         raise ValueError(f"Errore durante il recupero dell'ID utente: {e}")
 
-# Funzione per salvare un profilo per un utente specifico nel database
+# Funzione per salvare un profilo
 def save_profile(user_id, profile_name, associations):
+    """Salva un profilo per l'utente specificato."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
                 "INSERT INTO profiles (user_id, name, data) VALUES (?, ?, ?)",
-                (user_id, profile_name, json.dumps(associations))
+                (user_id, profile_name, json.dumps(associations)),
             )
             conn.commit()
     except Exception as e:
-        raise ValueError(f"Errore nel salvataggio del profilo: {e}")
+        raise ValueError(f"Errore durante il salvataggio del profilo: {e}")
 
-# Funzione per caricare tutti i profili per un utente specifico
+# Funzione per recuperare tutti i profili di un utente
 def list_profiles(user_email):
+    """Ritorna tutti i profili associati a un determinato utente."""
     try:
+        if not user_email:
+            raise ValueError("Email dell'utente non fornita.")
+
         user_id = get_user_id(user_email)
+        if not user_id:
+            raise ValueError(f"L'utente con email {user_email} non esiste.")
+
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT id, name FROM profiles WHERE user_id = ?", (user_id,))
@@ -46,6 +58,7 @@ def list_profiles(user_email):
 
 # Funzione per caricare un profilo specifico
 def load_profile(profile_id):
+    """Carica i dati di un profilo specifico."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -55,8 +68,9 @@ def load_profile(profile_id):
     except Exception as e:
         raise ValueError(f"Errore durante il caricamento del profilo: {e}")
 
-# Funzione per eliminare un profilo specifico
+# Funzione per eliminare un profilo
 def delete_profile(profile_id):
+    """Elimina un profilo dal database."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -64,45 +78,3 @@ def delete_profile(profile_id):
             conn.commit()
     except Exception as e:
         raise ValueError(f"Errore durante l'eliminazione del profilo: {e}")
-
-# Funzione di backup: salva i profili in un file JSON (opzionale)
-def backup_profiles():
-    try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT user_id, name, data FROM profiles")
-            profiles = cursor.fetchall()
-
-        backup = {}
-        for user_id, name, data in profiles:
-            if user_id not in backup:
-                backup[user_id] = {}
-            backup[user_id][name] = json.loads(data)
-
-        with open(PROFILES_BACKUP_FILE, "w") as file:
-            json.dump(backup, file, indent=4)
-    except Exception as e:
-        raise ValueError(f"Errore durante il backup dei profili: {e}")
-
-# Funzione di ripristino: carica i profili da un file JSON nel database (opzionale)
-def restore_profiles():
-    if not os.path.exists(PROFILES_BACKUP_FILE):
-        return
-
-    try:
-        with open(PROFILES_BACKUP_FILE, "r") as file:
-            backup = json.load(file)
-
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            for user_id, profiles in backup.items():
-                for name, data in profiles.items():
-                    cursor.execute(
-                        "INSERT INTO profiles (user_id, name, data) VALUES (?, ?, ?)",
-                        (user_id, name, json.dumps(data))
-                    )
-            conn.commit()
-    except Exception as e:
-        raise ValueError(f"Errore durante il ripristino dei profili: {e}")
-
-__all__ = ["get_user_id", "save_profile", "list_profiles", "load_profile", "delete_profile", "backup_profiles", "restore_profiles"]

@@ -119,12 +119,26 @@ elif st.session_state["page"] == "Caricamento File":
             preview_file(uploaded_record)
 
             # Caricamento dei profili salvati
-            profiles = list_profiles(st.session_state["authenticated_user"])
-            if profiles:
-                selected_profile = st.selectbox("Seleziona un profilo salvato", [p[1] for p in profiles])
-                if st.button("Carica Profilo"):
-                    profile_data = load_profile(selected_profile)
-                    st.session_state["associations"] = profile_data
+            if st.session_state["authenticated_user"]:
+    st.info(f"Utente autenticato: {st.session_state['authenticated_user']}")
+else:
+    st.error("Nessun utente autenticato.")
+
+try:
+    profiles = list_profiles(st.session_state["authenticated_user"])
+    if profiles:
+        st.write(f"Profili trovati: {profiles}")
+        selected_profile = st.selectbox(
+            "Seleziona un profilo salvato:", [p[1] for p in profiles]
+        )
+        if st.button("Carica Profilo"):
+            profile_data = load_profile(selected_profile)
+            st.session_state["associations"] = profile_data
+            st.success("Profilo caricato con successo!")
+    else:
+        st.warning("Non ci sono profili salvati.")
+except ValueError as e:
+    st.error(f"Errore: {e}")
 
             # Associazione colonne
             source_columns = get_columns(uploaded_source)
