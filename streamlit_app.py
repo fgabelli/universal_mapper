@@ -105,23 +105,29 @@ elif st.session_state["page"] == "register":
             st.error("Compila tutti i campi.")
 
 elif st.session_state["page"] == "Caricamento File":
-    st.title("Caricamento File")
-    uploaded_source = upload_file("Carica file sorgente (CSV/XLS/XLSX):")
-    uploaded_record = upload_file("Carica file tracciato record (CSV/XLS/XLSX):")
+    if st.session_state["authenticated"]:
+        st.title("Caricamento File")
+        st.write("Carica i file sorgente e il tracciato record.")
 
-    if uploaded_source and uploaded_record:
-        st.subheader("Anteprima file sorgente:")
-        preview_file(uploaded_source)
-        st.subheader("Anteprima file tracciato record:")
-        preview_file(uploaded_record)
+        uploaded_source = upload_file("Carica file sorgente (CSV/XLS/XLSX):")
+        uploaded_record = upload_file("Carica file tracciato record (CSV/XLS/XLSX):")
 
-        profiles = list_profiles(st.session_state["authenticated_user"])
-        if profiles:
-            selected_profile = st.selectbox("Seleziona un profilo salvato", [p[1] for p in profiles])
-            if st.button("Carica Profilo"):
-                profile_data = load_profile(selected_profile)
-                st.session_state["associations"] = profile_data
+        if uploaded_source and uploaded_record:
+            st.subheader("Anteprima file sorgente:")
+            preview_file(uploaded_source)
+            st.subheader("Anteprima file tracciato record:")
+            preview_file(uploaded_record)
 
+            # Caricamento dei profili salvati
+            profiles = list_profiles(st.session_state["authenticated_user"])
+            if profiles:
+                selected_profile = st.selectbox("Seleziona un profilo salvato", [p[1] for p in profiles])
+                if st.button("Carica Profilo"):
+                    profile_data = load_profile(selected_profile)
+                    st.session_state["associations"] = profile_data
+
+            # Aggiungi qui la logica per salvare le associazioni o generare file, se necessario
+    
         source_columns = get_columns(uploaded_source)
         record_columns = get_columns(uploaded_record)
         associations = {}
@@ -132,6 +138,9 @@ elif st.session_state["page"] == "Caricamento File":
                 key=f"assoc_{record_col}",
             )
         st.session_state["associations"] = associations
+else:
+        st.warning("Devi essere autenticato per accedere a questa pagina.")
+
 
         profile_name = st.text_input("Nome del profilo:")
         if st.button("Salva Profilo"):
