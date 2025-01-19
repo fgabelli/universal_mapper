@@ -211,43 +211,40 @@ elif st.session_state["page"] == "Account":
 elif st.session_state["page"] == "Manuale":
     st.title("Manuale Utente")
     st.markdown(
-        ""
+       # Corretto utilizzo dei doppi apici per evitare errori
+st.markdown(
+    """
+    ### Benvenuto nel Manuale Utente di Universal Mapper
 
-        ### Benvenuto nel Manuale Utente di Universal Mapper
+    Questa applicazione ti consente di caricare file sorgente e tracciati record, associare colonne, generare file di output e gestire profili personalizzati.
 
-        Questa applicazione ti consente di caricare file sorgente e tracciati record, associare colonne, generare file di output e gestire profili personalizzati.
+    #### **Come utilizzare l'app:**
 
-        #### **Come utilizzare l'app:**
+    1. **Login o Registrazione**:
+       - Accedi utilizzando il tuo username e password.
+       - Se non hai un account, utilizza il pulsante di registrazione per crearne uno.
 
-        1. **Login o Registrazione**:
-           - Accedi utilizzando il tuo username e password.
-           - Se non hai un account, utilizza il pulsante di registrazione per crearne uno.
+    2. **Caricamento File**:
+       - Carica il file sorgente (CSV, XLS, XLSX) e il tracciato record.
+       - Visualizza un'anteprima dei file caricati per verificarne il contenuto.
 
-        2. **Caricamento File**:
-           - Carica il file sorgente (CSV, XLS, XLSX) e il tracciato record.
-           - Visualizza un'anteprima dei file caricati per verificarne il contenuto.
+    3. **Associazione Colonne**:
+       - Associa le colonne del file sorgente a quelle del tracciato record.
+       - Puoi caricare o salvare un profilo per semplificare il processo in futuro.
 
-        3. **Associazione Colonne**:
-           - Associa le colonne del file sorgente a quelle del tracciato record.
-           - Puoi caricare o salvare un profilo per semplificare il processo in futuro.
+    4. **Generazione File di Output**:
+       - Scegli il formato di output desiderato (CSV, XLS, XLSX).
+       - Genera e scarica il file di output.
 
-        4. **Generazione File di Output**:
-           - Scegli il formato di output desiderato (CSV, XLS, XLSX).
-           - Genera e scarica il file di output.
+    5. **Gestione Profili**:
+       - Visualizza ed elimina i profili salvati.
 
-        5. **Gestione Profili**:
-           - Visualizza ed elimina i profili salvati.
+    #### **Supporto:**
 
-        #### **Supporto:**
+    Per ulteriori informazioni o problemi tecnici, contatta il supporto tecnico.
 
-        Per ulteriori informazioni o problemi tecnici, contatta il supporto tecnico.
+    **Email:** supporto@revan.it  
+    **Telefono:** +39 0245076239
+    """
+)
 
-        **Email:** supporto@revan.it  
-        **Telefono:** +39 0245076239
-        """
-    )
-
-elif st.session_state["page"] == "Logout":
-    st.session_state["authenticated"] = False
-    st.session_state["page"] = "login"
-    st.success("Disconnesso con successo!")
