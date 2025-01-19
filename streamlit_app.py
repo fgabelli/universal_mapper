@@ -17,7 +17,7 @@ initialize_db()
 def get_user_id(email):
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+        cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
         user = cursor.fetchone()
         return user[0] if user else None
 
@@ -118,7 +118,6 @@ elif st.session_state["page"] == "Caricamento File":
             st.subheader("Anteprima file tracciato record:")
             preview_file(uploaded_record)
 
-            # Caricamento dei profili salvati
             profiles = list_profiles(st.session_state["authenticated_user"])
             if profiles:
                 selected_profile = st.selectbox("Seleziona un profilo salvato", [p[1] for p in profiles])
@@ -126,55 +125,50 @@ elif st.session_state["page"] == "Caricamento File":
                     profile_data = load_profile(selected_profile)
                     st.session_state["associations"] = profile_data
 
-            # Aggiungi qui la logica per salvare le associazioni o generare file, se necessario
-    
-        source_columns = get_columns(uploaded_source)
-        record_columns = get_columns(uploaded_record)
-        associations = {}
-        for record_col in record_columns:
-            associations[record_col] = st.selectbox(
-                f"Associa una colonna per '{record_col}':",
-                options=["-- Nessuna --"] + source_columns,
-                key=f"assoc_{record_col}",
-            )
-        st.session_state["associations"] = associations
-else:
-        st.warning("Devi essere autenticato per accedere a questa pagina.")
-
-
-        profile_name = st.text_input("Nome del profilo:")
-        if st.button("Salva Profilo"):
-            try:
-                user_id = get_user_id(st.session_state["authenticated_user"])
-                if user_id:
-                    save_profile(user_id, profile_name, st.session_state["associations"])
-                    st.success(f"Profilo '{profile_name}' salvato!")
-                else:
-                    st.error("Errore: Utente non trovato!")
-            except Exception as e:
-                st.error(f"Errore durante il salvataggio del profilo: {e}")
-
-        output_format = st.selectbox("Seleziona il formato del file generato:", ["CSV", "XLS", "XLSX"])
-        if st.button("Genera File"):
-            try:
-                output_file = generate_output(
-                    uploaded_source, 
-                    st.session_state["associations"], 
-                    output_format
+            source_columns = get_columns(uploaded_source)
+            record_columns = get_columns(uploaded_record)
+            associations = {}
+            for record_col in record_columns:
+                associations[record_col] = st.selectbox(
+                    f"Associa una colonna per '{record_col}':",
+                    options=["-- Nessuna --"] + source_columns,
+                    key=f"assoc_{record_col}",
                 )
-                st.session_state["output_file"] = output_file
-                st.success("File generato con successo!")
-            except Exception as e:
-                st.error(f"Errore durante la generazione del file: {e}")
+            st.session_state["associations"] = associations
 
-        if st.session_state["output_file"]:
-            with open(st.session_state["output_file"], "rb") as file:
-                st.download_button(
-                    label="Scarica il file generato",
-                    data=file,
-                    file_name=f"output.{output_format.lower()}",
-                    mime="text/csv" if output_format == "CSV" else "application/vnd.ms-excel"
-                )
+            profile_name = st.text_input("Nome del profilo:")
+            if st.button("Salva Profilo"):
+                try:
+                    user_id = get_user_id(st.session_state["authenticated_user"])
+                    if user_id:
+                        save_profile(user_id, profile_name, st.session_state["associations"])
+                        st.success(f"Profilo '{profile_name}' salvato!")
+                    else:
+                        st.error("Errore: Utente non trovato!")
+                except Exception as e:
+                    st.error(f"Errore durante il salvataggio del profilo: {e}")
+
+            output_format = st.selectbox("Seleziona il formato del file generato:", ["CSV", "XLS", "XLSX"])
+            if st.button("Genera File"):
+                try:
+                    output_file = generate_output(
+                        uploaded_source, 
+                        st.session_state["associations"], 
+                        output_format
+                    )
+                    st.session_state["output_file"] = output_file
+                    st.success("File generato con successo!")
+                except Exception as e:
+                    st.error(f"Errore durante la generazione del file: {e}")
+
+            if st.session_state["output_file"]:
+                with open(st.session_state["output_file"], "rb") as file:
+                    st.download_button(
+                        label="Scarica il file generato",
+                        data=file,
+                        file_name=f"output.{output_format.lower()}",
+                        mime="text/csv" if output_format == "CSV" else "application/vnd.ms-excel"
+                    )
 
 elif st.session_state["page"] == "Gestione Profili":
     st.title("Gestione Profili")
@@ -203,32 +197,10 @@ elif st.session_state["page"] == "Manuale":
         Questa applicazione ti consente di caricare file sorgente e tracciati record, associare colonne, generare file di output e gestire profili personalizzati.
 
         #### **Come utilizzare l'app:**
-
-        1. **Login o Registrazione**:
-           - Accedi utilizzando il tuo username e password.
-           - Se non hai un account, utilizza il pulsante di registrazione per crearne uno.
-
-        2. **Caricamento File**:
-           - Carica il file sorgente (CSV, XLS, XLSX) e il tracciato record.
-           - Visualizza un'anteprima dei file caricati per verificarne il contenuto.
-
-        3. **Associazione Colonne**:
-           - Associa le colonne del file sorgente a quelle del tracciato record.
-           - Puoi caricare o salvare un profilo per semplificare il processo in futuro.
-
-        4. **Generazione File di Output**:
-           - Scegli il formato di output desiderato (CSV, XLS, XLSX).
-           - Genera e scarica il file di output.
-
-        5. **Gestione Profili**:
-           - Visualizza ed elimina i profili salvati.
-
-        #### **Supporto:**
-
-        Per ulteriori informazioni o problemi tecnici, contatta il supporto tecnico.
-
-        **Email:** supporto@revan.it  
-        **Telefono:** +39 0245076239
+        1. **Login o Registrazione**: Accedi o crea un account.
+        2. **Caricamento File**: Carica i file sorgente e tracciati record.
+        3. **Associazione Colonne**: Associa le colonne e salva i profili.
+        4. **Generazione File di Output**: Genera e scarica il file.
         """
     )
 
