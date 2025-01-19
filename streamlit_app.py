@@ -118,12 +118,18 @@ elif st.session_state["page"] == "Caricamento File":
             st.subheader("Anteprima file tracciato record:")
             preview_file(uploaded_record)
 
-            profiles = list_profiles(st.session_state["authenticated_user"])
-            if profiles:
-                selected_profile = st.selectbox("Seleziona un profilo salvato", [p[1] for p in profiles])
-                if st.button("Carica Profilo"):
-                    profile_data = load_profile(selected_profile)
-                    st.session_state["associations"] = profile_data
+            # Caricamento dei profili salvati
+            try:
+                profiles = list_profiles(st.session_state["authenticated_user"])
+                if profiles:
+                    selected_profile = st.selectbox("Seleziona un profilo salvato", [p[1] for p in profiles])
+                    if st.button("Carica Profilo"):
+                        profile_data = load_profile(selected_profile)
+                        st.session_state["associations"] = profile_data
+                else:
+                    st.info("Non ci sono profili salvati.")
+            except Exception as e:
+                st.error(f"Errore durante il caricamento dei profili: {e}")
 
             source_columns = get_columns(uploaded_source)
             record_columns = get_columns(uploaded_record)
@@ -172,14 +178,17 @@ elif st.session_state["page"] == "Caricamento File":
 
 elif st.session_state["page"] == "Gestione Profili":
     st.title("Gestione Profili")
-    profiles = list_profiles(st.session_state["authenticated_user"])
-    if profiles:
-        selected_profile = st.selectbox("Seleziona un profilo salvato", [p[1] for p in profiles])
-        if st.button("Elimina Profilo"):
-            delete_profile(selected_profile, st.session_state["authenticated_user"])
-            st.success(f"Profilo '{selected_profile}' eliminato!")
-    else:
-        st.warning("Non ci sono profili salvati.")
+    try:
+        profiles = list_profiles(st.session_state["authenticated_user"])
+        if profiles:
+            selected_profile = st.selectbox("Seleziona un profilo salvato", [p[1] for p in profiles])
+            if st.button("Elimina Profilo"):
+                delete_profile(selected_profile)
+                st.success(f"Profilo '{selected_profile}' eliminato!")
+        else:
+            st.info("Non ci sono profili salvati.")
+    except Exception as e:
+        st.error(f"Errore durante la gestione dei profili: {e}")
 
 elif st.session_state["page"] == "Account":
     st.title("Impostazioni Account")
@@ -197,10 +206,10 @@ elif st.session_state["page"] == "Manuale":
         Questa applicazione ti consente di caricare file sorgente e tracciati record, associare colonne, generare file di output e gestire profili personalizzati.
 
         #### **Come utilizzare l'app:**
-        1. **Login o Registrazione**: Accedi o crea un account.
-        2. **Caricamento File**: Carica i file sorgente e tracciati record.
-        3. **Associazione Colonne**: Associa le colonne e salva i profili.
-        4. **Generazione File di Output**: Genera e scarica il file.
+        - Login o Registrazione
+        - Caricamento File
+        - Associazione Colonne
+        - Gestione Profili
         """
     )
 
