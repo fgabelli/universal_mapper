@@ -13,7 +13,7 @@ def register(email, password):
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "INSERT INTO users (email, password) VALUES (%s, %s)",
+                "INSERT INTO users (email, password) VALUES (?, ?)",
                 (email, hashed_password)
             )
             conn.commit()
@@ -29,7 +29,7 @@ def login(email, password):
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "SELECT * FROM users WHERE email = %s AND password = %s",
+                "SELECT * FROM users WHERE email = ? AND password = ?",
                 (email, hashed_password)
             )
             user = cursor.fetchone()
@@ -43,7 +43,7 @@ def debug_check_users():
     with get_connection() as conn:
         cursor = conn.cursor()
         try:
-            cursor.execute("SELECT id, email, created_at FROM users")
+            cursor.execute("SELECT id, email FROM users")
             return cursor.fetchall()
         except Exception as e:
             print(f"Errore durante il debug degli utenti: {e}")

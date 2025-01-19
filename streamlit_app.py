@@ -112,32 +112,32 @@ elif st.session_state["page"] == "Caricamento File":
         uploaded_source = upload_file("Carica file sorgente (CSV/XLS/XLSX):")
         uploaded_record = upload_file("Carica file tracciato record (CSV/XLS/XLSX):")
 
+        # Aggiunta del blocco per la gestione dei profili salvati
         if uploaded_source and uploaded_record:
             st.subheader("Anteprima file sorgente:")
             preview_file(uploaded_source)
             st.subheader("Anteprima file tracciato record:")
             preview_file(uploaded_record)
 
-            # Caricamento dei profili salvati
             if st.session_state["authenticated_user"]:
-    st.info(f"Utente autenticato: {st.session_state['authenticated_user']}")
-    try:
-        profiles = list_profiles(st.session_state["authenticated_user"])
-        if profiles:
-            st.write(f"Profili trovati: {profiles}")
-            selected_profile = st.selectbox(
-                "Seleziona un profilo salvato:", [p[1] for p in profiles]
-            )
-            if st.button("Carica Profilo"):
-                profile_data = load_profile(selected_profile)
-                st.session_state["associations"] = profile_data
-                st.success("Profilo caricato con successo!")
-        else:
-            st.warning("Non ci sono profili salvati.")
-    except ValueError as e:
-        st.error(f"Errore: {e}")
-else:
-    st.error("Nessun utente autenticato.")
+                st.info(f"Utente autenticato: {st.session_state['authenticated_user']}")
+                try:
+                    profiles = list_profiles(st.session_state["authenticated_user"])
+                    if profiles:
+                        st.write(f"Profili trovati: {profiles}")
+                        selected_profile = st.selectbox(
+                            "Seleziona un profilo salvato:", [p[1] for p in profiles]
+                        )
+                        if st.button("Carica Profilo"):
+                            profile_data = load_profile(selected_profile)
+                            st.session_state["associations"] = profile_data
+                            st.success("Profilo caricato con successo!")
+                    else:
+                        st.warning("Non ci sono profili salvati.")
+                except ValueError as e:
+                    st.error(f"Errore: {e}")
+            else:
+                st.error("Nessun utente autenticato.")
 
             # Associazione colonne
             source_columns = get_columns(uploaded_source)
@@ -211,7 +211,8 @@ elif st.session_state["page"] == "Account":
 elif st.session_state["page"] == "Manuale":
     st.title("Manuale Utente")
     st.markdown(
-        """
+        ""
+
         ### Benvenuto nel Manuale Utente di Universal Mapper
 
         Questa applicazione ti consente di caricare file sorgente e tracciati record, associare colonne, generare file di output e gestire profili personalizzati.
